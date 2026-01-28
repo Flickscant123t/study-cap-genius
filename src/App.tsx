@@ -24,7 +24,7 @@ const App = () => (
             {/* Open Graph / Facebook */}
             <meta property="og:title" content="Study Cap Genius" />
             <meta property="og:description" content="Learn with StudyCap Genius and improve your scores." />
-            <meta property="og:image" content="/image.png" />
+            <meta property="og:image" content="https://studycapgenius.vercel.app/image.png" />
             <meta property="og:url" content="https://studycapgenius.vercel.app/" />
             <meta property="og:type" content="website" />
 
@@ -32,7 +32,7 @@ const App = () => (
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content="Study Cap Genius" />
             <meta name="twitter:description" content="Learn with StudyCap Genius and improve your scores." />
-            <meta name="twitter:image" content="/image.png" />
+            <meta name="twitter:image" content="https://studycapgenius.vercel.app/image.png" />
           </Helmet>
 
           <Toaster />
