@@ -1,0 +1,152 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 20% 99%;
+    --foreground: 234 40% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 234 40% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 234 40% 15%;
+
+    --primary: 245 58% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 245 40% 96%;
+    --secondary-foreground: 245 58% 35%;
+
+    --muted: 240 15% 95%;
+    --muted-foreground: 234 15% 45%;
+
+    --accent: 35 92% 55%;
+    --accent-foreground: 35 92% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 15% 90%;
+    --input: 240 15% 90%;
+    --ring: 245 58% 51%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 245 40% 98%;
+    --sidebar-foreground: 234 40% 25%;
+    --sidebar-primary: 245 58% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 245 40% 94%;
+    --sidebar-accent-foreground: 245 58% 35%;
+    --sidebar-border: 240 15% 90%;
+    --sidebar-ring: 245 58% 51%;
+
+    /* Custom StudyCap tokens */
+    --gradient-primary: linear-gradient(135deg, hsl(245 58% 51%) 0%, hsl(280 60% 55%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 92% 55%) 0%, hsl(25 95% 50%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(245 40% 98%) 0%, hsl(240 20% 99%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(245 40% 99%) 100%);
+    --shadow-soft: 0 4px 20px -4px hsl(245 58% 51% / 0.12);
+    --shadow-card: 0 2px 12px -2px hsl(234 40% 15% / 0.08);
+    --shadow-hover: 0 8px 30px -6px hsl(245 58% 51% / 0.2);
+  }
+
+  .dark {
+    --background: 234 40% 8%;
+    --foreground: 240 20% 98%;
+
+    --card: 234 35% 12%;
+    --card-foreground: 240 20% 98%;
+
+    --popover: 234 35% 12%;
+    --popover-foreground: 240 20% 98%;
+
+    --primary: 245 70% 65%;
+    --primary-foreground: 234 40% 8%;
+
+    --secondary: 234 30% 18%;
+    --secondary-foreground: 245 60% 80%;
+
+    --muted: 234 25% 16%;
+    --muted-foreground: 234 15% 60%;
+
+    --accent: 35 90% 60%;
+    --accent-foreground: 35 90% 10%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 234 25% 18%;
+    --input: 234 25% 18%;
+    --ring: 245 70% 65%;
+
+    --sidebar-background: 234 35% 10%;
+    --sidebar-foreground: 240 20% 90%;
+    --sidebar-primary: 245 70% 65%;
+    --sidebar-primary-foreground: 234 40% 8%;
+    --sidebar-accent: 234 30% 16%;
+    --sidebar-accent-foreground: 245 60% 80%;
+    --sidebar-border: 234 25% 18%;
+    --sidebar-ring: 245 70% 65%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(245 70% 65%) 0%, hsl(280 65% 60%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 90% 60%) 0%, hsl(25 90% 55%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(234 40% 8%) 0%, hsl(234 35% 10%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(234 35% 12%) 0%, hsl(234 35% 14%) 100%);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
+    --shadow-card: 0 2px 12px -2px hsl(0 0% 0% / 0.2);
+    --shadow-hover: 0 8px 30px -6px hsl(245 70% 65% / 0.25);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+  
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+  
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+  
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+  
+  .shadow-soft {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  
+  .shadow-hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
