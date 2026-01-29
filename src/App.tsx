@@ -9,6 +9,42 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+export const metadata: Metadata = {
+  metadataBase: new URL('https://corocat.me'),
+  title: {
+    default: 'Corocat: Your AI Guide to Learning Any Subject',
+    template: `%s | Corocat`,
+  },
+  description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/cat.png',
+    apple: '/cat.png',
+  },
+  manifest: '/site.webmanifest',
+  openGraph: {
+    title: 'Corocat: Your AI Guide to Learning Any Subject',
+    description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
+    url: 'https://corocat.me',
+    siteName: 'Corocat',
+    images: [
+      {
+        url: 'https://corocat.me/cat.png', // It's a good practice to create a social sharing image
+        width: 1200,
+        height: 1200,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Corocat: Your AI Guide to Learning Any Subject',
+    description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
+    images: ['https://corocat.me/cat.png'],
+  },
+};
+
 
 const queryClient = new QueryClient();
 
