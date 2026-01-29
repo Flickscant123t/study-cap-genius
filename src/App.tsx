@@ -9,41 +9,6 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
-export const metadata: Metadata = {
-  metadataBase: new URL('https://corocat.me'),
-  title: {
-    default: 'Corocat: Your AI Guide to Learning Any Subject',
-    template: `%s | Corocat`,
-  },
-  description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/cat.png',
-    apple: '/cat.png',
-  },
-  manifest: '/site.webmanifest',
-  openGraph: {
-    title: 'Corocat: Your AI Guide to Learning Any Subject',
-    description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
-    url: 'https://corocat.me',
-    siteName: 'Corocat',
-    images: [
-      {
-        url: 'https://corocat.me/cat.png', // It's a good practice to create a social sharing image
-        width: 1200,
-        height: 1200,
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Corocat: Your AI Guide to Learning Any Subject',
-    description: 'Corocat uses AI to create personalized learning courses on any topic. Go from beginner to expert with a structured, easy-to-follow plan.',
-    images: ['https://corocat.me/cat.png'],
-  },
-};
 
 
 const queryClient = new QueryClient();
@@ -54,21 +19,21 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <Helmet>
-            <title>Study Cap Genius</title>
-            <meta name="description" content="Learn with StudyCap Genius and improve your scores." />
+            <title>StudyCap - AI-Powered Study Assistant</title>
+            <meta name="description" content="Master any subject with StudyCap, your AI-powered study companion. Get instant explanations, create flashcards, and ace your exams with personalized learning." />
 
             {/* Open Graph / Facebook */}
-            <meta property="og:title" content="Study Cap Genius" />
-            <meta property="og:description" content="Learn with StudyCap Genius and improve your scores." />
-            <meta property="og:image" content="https://studycapgenius.vercel.app/image.png" />
+            <meta property="og:title" content="StudyCap - AI-Powered Study Assistant" />
+            <meta property="og:description" content="Master any subject with StudyCap, your AI-powered study companion. Get instant explanations, create flashcards, and ace your exams with personalized learning." />
+            <meta property="og:image" content="https://studycapgenius.vercel.app/image.png/" />
             <meta property="og:url" content="https://studycapgenius.vercel.app/" />
             <meta property="og:type" content="website" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
-            <meta name="twitter:title" content="Study Cap Genius" />
-            <meta name="twitter:description" content="Learn with StudyCap Genius and improve your scores." />
-            <meta name="twitter:image" content="https://studycapgenius.vercel.app/image.png" />
+            <meta name="twitter:title" content="StudyCap - AI-Powered Study Assistant" />
+            <meta name="twitter:description" content="Master any subject with StudyCap, your AI-powered study companion. Get instant explanations, create flashcards, and ace your exams with personalized learning." />
+            <meta name="twitter:image" content="https://studycapgenius.vercel.app/image.png/" />
           </Helmet>
 
           <Toaster />
