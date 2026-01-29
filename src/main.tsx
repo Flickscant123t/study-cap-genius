@@ -9,6 +9,7 @@ umamiScript.src = "https://cloud.umami.is/script.js";
 umamiScript.defer = true;
 umamiScript.dataset.websiteId = "a95b5b67-9b05-4fb2-940b-54b3d1934500";
 document.head.appendChild(umamiScript);
+
 export const metadata: Metadata = {
   metadataBase: new URL('https://corocat.me'),
   title: {
@@ -44,6 +45,7 @@ export const metadata: Metadata = {
     images: ['https://corocat.me/cat.png'],
   },
 };
+
 
 
 createRoot(document.getElementById("root")!).render(
