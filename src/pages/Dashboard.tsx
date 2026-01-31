@@ -21,7 +21,8 @@ import {
   User,
   Brain,
   Target,
-  Clock
+  Clock,
+  PenTool,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -166,11 +167,12 @@ export default function Dashboard() {
   };
 
   const navItems = [
-    { icon: Home, label: "Home", active: true },
-    { icon: BookOpen, label: "Notes", active: false },
-    { icon: FlashcardIcon, label: "Flashcards", active: false },
-    { icon: CheckSquare, label: "Tasks", active: false },
-    { icon: Settings, label: "Settings", active: false },
+    { icon: Home, label: "Home", path: "/dashboard", active: true },
+    { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: false },
+    { icon: BookOpen, label: "Notes", path: "/notes", active: false },
+    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false },
+    { icon: CheckSquare, label: "Tasks", path: "/tasks", active: false },
+    { icon: Settings, label: "Settings", path: "/settings", active: false },
   ];
 
   return (
@@ -238,6 +240,7 @@ export default function Dashboard() {
             {navItems.map((item) => (
               <button
                 key={item.label}
+                onClick={() => navigate(item.path)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   item.active
