@@ -113,6 +113,10 @@ export default function Landing() {
                   <CheckCircle className="w-5 h-5 text-primary" />
                   <span>Light brainstorming</span>
                 </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <span>Whiteboard (infinite canvas)</span>
+                </li>
               </ul>
 
               <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth')}>
@@ -157,6 +161,10 @@ export default function Landing() {
                 <li className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-accent" />
                   <span>Priority response quality</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent" />
+                  <span>Whiteboard (infinite canvas)</span>
                 </li>
               </ul>
 
