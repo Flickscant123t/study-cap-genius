@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
@@ -16,31 +15,48 @@ import {
   X,
   User,
   PenTool,
-  ArrowLeft,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
-import WhiteboardCanvas from "@/components/whiteboard/WhiteboardCanvas";
-import WhiteboardList, { Whiteboard } from "@/components/whiteboard/WhiteboardList";
+import { useState, useEffect } from "react";
 
-export default function WhiteboardPage() {
+const featureInfo: Record<string, { title: string; description: string; icon: React.ElementType }> = {
+  "/notes": {
+    title: "Notes",
+    description: "Create and organize your study notes with AI-powered summaries and insights.",
+    icon: BookOpen,
+  },
+  "/flashcards": {
+    title: "Flashcards",
+    description: "Generate smart flashcards from your notes and master any topic with spaced repetition.",
+    icon: FlashcardIcon,
+  },
+  "/tasks": {
+    title: "Tasks",
+    description: "Plan your study sessions and track your progress with intelligent task management.",
+    icon: CheckSquare,
+  },
+  "/settings": {
+    title: "Settings",
+    description: "Customize your learning experience with personalized preferences and themes.",
+    icon: Settings,
+  },
+};
+
+export default function PremiumFeature() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [whiteboards, setWhiteboards] = useState<Whiteboard[]>(() => {
-    const saved = localStorage.getItem("studycap_whiteboards");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((wb: any) => ({
-        ...wb,
-        createdAt: new Date(wb.createdAt),
-        updatedAt: new Date(wb.updatedAt),
-      }));
-    }
-    return [];
-  });
-  const [activeWhiteboard, setActiveWhiteboard] = useState<Whiteboard | null>(null);
-  
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, signOut, isPremium, dailyUsage, maxFreeUsage } = useAuth();
+
+  const feature = featureInfo[location.pathname] || {
+    title: "Premium Feature",
+    description: "This feature is available for premium users.",
+    icon: Lock,
+  };
+
+  const FeatureIcon = feature.icon;
 
   useEffect(() => {
     if (!user) {
@@ -48,66 +64,21 @@ export default function WhiteboardPage() {
     }
   }, [user, navigate]);
 
-  // Save whiteboards to localStorage
-  useEffect(() => {
-    localStorage.setItem("studycap_whiteboards", JSON.stringify(whiteboards));
-  }, [whiteboards]);
-
-  const handleCreate = useCallback((name: string) => {
-    const newWhiteboard: Whiteboard = {
-      id: crypto.randomUUID(),
-      name,
-      data: "",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    setWhiteboards(prev => [newWhiteboard, ...prev]);
-    setActiveWhiteboard(newWhiteboard);
-  }, []);
-
-  const handleRename = useCallback((id: string, name: string) => {
-    setWhiteboards(prev => 
-      prev.map(wb => 
-        wb.id === id ? { ...wb, name, updatedAt: new Date() } : wb
-      )
-    );
-    if (activeWhiteboard?.id === id) {
-      setActiveWhiteboard(prev => prev ? { ...prev, name } : null);
-    }
-  }, [activeWhiteboard]);
-
-  const handleDelete = useCallback((id: string) => {
-    setWhiteboards(prev => prev.filter(wb => wb.id !== id));
-    if (activeWhiteboard?.id === id) {
-      setActiveWhiteboard(null);
-    }
-  }, [activeWhiteboard]);
-
-  const handleSave = useCallback((data: string) => {
-    if (!activeWhiteboard) return;
-    
-    setWhiteboards(prev => 
-      prev.map(wb => 
-        wb.id === activeWhiteboard.id 
-          ? { ...wb, data, updatedAt: new Date() } 
-          : wb
-      )
-    );
-  }, [activeWhiteboard]);
-
   const handleLogout = async () => {
     await signOut();
     navigate('/');
   };
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/dashboard", active: false, isFree: true },
-    { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: true, isFree: true },
-    { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },
-    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false, isFree: false },
-    { icon: CheckSquare, label: "Tasks", path: "/tasks", active: false, isFree: false },
-    { icon: Settings, label: "Settings", path: "/settings", active: false, isFree: false },
+    { icon: Home, label: "Home", path: "/dashboard", isFree: true },
+    { icon: PenTool, label: "Whiteboard", path: "/whiteboard", isFree: true },
+    { icon: BookOpen, label: "Notes", path: "/notes", isFree: false },
+    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", isFree: false },
+    { icon: CheckSquare, label: "Tasks", path: "/tasks", isFree: false },
+    { icon: Settings, label: "Settings", path: "/settings", isFree: false },
   ];
+
+  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -177,7 +148,7 @@ export default function WhiteboardPage() {
                 onClick={() => navigate(item.path)}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                  item.active
+                  isActive(item.path)
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : item.isFree
                     ? "bg-primary/10 text-sidebar-foreground hover:bg-primary/20"
@@ -230,39 +201,46 @@ export default function WhiteboardPage() {
           <button onClick={() => setSidebarOpen(true)} className="text-foreground">
             <Menu className="w-6 h-6" />
           </button>
-          <span className="ml-4 font-semibold">Whiteboard</span>
+          <span className="ml-4 font-semibold">{feature.title}</span>
         </header>
 
-        {activeWhiteboard ? (
-          <div className="flex-1 flex flex-col">
-            {/* Canvas Header */}
-            <div className="h-14 border-b border-border flex items-center px-4 gap-4 bg-card">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setActiveWhiteboard(null)}
+        {/* Premium Feature Content */}
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center max-w-md">
+            <div className="w-24 h-24 rounded-3xl bg-accent/20 flex items-center justify-center mx-auto mb-6">
+              <FeatureIcon className="w-12 h-12 text-accent" />
+            </div>
+            <h1 className="text-3xl font-bold mb-3">{feature.title}</h1>
+            <p className="text-muted-foreground mb-8">
+              {feature.description}
+            </p>
+            <div className="bg-card border border-border rounded-2xl p-6 mb-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Lock className="w-5 h-5 text-muted-foreground" />
+                <span className="font-medium">Premium Feature</span>
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Unlock this feature and get unlimited access to all StudyCap tools.
+              </p>
+              <Button 
+                variant="accent" 
+                size="lg"
+                className="w-full"
+                onClick={() => window.location.href = `https://buy.stripe.com/test_28EaEXdh7dr11y87olcV200?prefilled_email=${encodeURIComponent(user?.email || '')}`}
               >
-                <ArrowLeft className="w-5 h-5" />
+                <Crown className="w-5 h-5" />
+                Upgrade to Premium
               </Button>
-              <h1 className="font-semibold">{activeWhiteboard.name}</h1>
             </div>
-            <div className="flex-1">
-              <WhiteboardCanvas
-                whiteboardId={activeWhiteboard.id}
-                initialData={activeWhiteboard.data}
-                onSave={handleSave}
-              />
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/dashboard')}
+            >
+              <Home className="w-4 h-4" />
+              Back to Home
+            </Button>
           </div>
-        ) : (
-          <WhiteboardList
-            whiteboards={whiteboards}
-            onSelect={setActiveWhiteboard}
-            onCreate={handleCreate}
-            onRename={handleRename}
-            onDelete={handleDelete}
-          />
-        )}
+        </div>
       </main>
 
       {/* Overlay for mobile sidebar */}
