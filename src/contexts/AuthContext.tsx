@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,6 +14,7 @@ interface AuthContextType {
   maxFreeUsage: number;
   incrementUsage: () => void;
   resetUsage: () => void;
+  refreshPremiumStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,12 +28,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isPremium, setIsPremium] = useState(false);
   const [dailyUsage, setDailyUsage] = useState(0);
 
+  // Function to check premium status from database
+  const checkPremiumStatus = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('status, plan')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking premium status:', error);
+        return false;
+      }
+
+      const isPremiumUser = data?.status === 'active' && data?.plan === 'premium';
+      setIsPremium(isPremiumUser);
+      
+      // Also update localStorage for quick access
+      localStorage.setItem('studycap_premium', isPremiumUser ? 'true' : 'false');
+      
+      return isPremiumUser;
+    } catch (err) {
+      console.error('Error in checkPremiumStatus:', err);
+      return false;
+    }
+  }, []);
+
+  // Function to manually refresh premium status
+  const refreshPremiumStatus = useCallback(async () => {
+    if (user?.id) {
+      await checkPremiumStatus(user.id);
+    }
+  }, [user?.id, checkPremiumStatus]);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Check premium status when user logs in
+        if (session?.user?.id) {
+          setTimeout(() => {
+            checkPremiumStatus(session.user.id);
+          }, 0);
+        } else {
+          setIsPremium(false);
+          localStorage.setItem('studycap_premium', 'false');
+        }
       }
     );
 
@@ -40,6 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      
+      // Check premium status on initial load
+      if (session?.user?.id) {
+        checkPremiumStatus(session.user.id);
+      }
     });
 
     // Load usage from localStorage
@@ -55,12 +105,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setDailyUsage(0);
     }
 
-    // Check premium status from localStorage (will be updated by Stripe webhook later)
-    const premiumStatus = localStorage.getItem('studycap_premium');
-    setIsPremium(premiumStatus === 'true');
-
     return () => subscription.unsubscribe();
-  }, []);
+  }, [checkPremiumStatus]);
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -86,6 +132,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    setIsPremium(false);
+    localStorage.setItem('studycap_premium', 'false');
   };
 
   const incrementUsage = () => {
@@ -113,6 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       maxFreeUsage: MAX_FREE_USAGE,
       incrementUsage,
       resetUsage,
+      refreshPremiumStatus,
     }}>
       {children}
     </AuthContext.Provider>
