@@ -167,12 +167,12 @@ export default function Dashboard() {
   };
 
   const navItems = [
-    { icon: Home, label: "Home", path: "/dashboard", active: true },
-    { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: false },
-    { icon: BookOpen, label: "Notes", path: "/notes", active: false },
-    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false },
-    { icon: CheckSquare, label: "Tasks", path: "/tasks", active: false },
-    { icon: Settings, label: "Settings", path: "/settings", active: false },
+    { icon: Home, label: "Home", path: "/dashboard", active: true, isFree: true },
+    { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: false, isFree: true },
+    { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },
+    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false, isFree: false },
+    { icon: CheckSquare, label: "Tasks", path: "/tasks", active: false, isFree: false },
+    { icon: Settings, label: "Settings", path: "/settings", active: false, isFree: false },
   ];
 
   return (
@@ -245,6 +245,8 @@ export default function Dashboard() {
                   "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   item.active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : item.isFree
+                    ? "bg-primary/10 text-sidebar-foreground hover:bg-primary/20"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 )}
               >

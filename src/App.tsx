@@ -9,6 +9,7 @@ import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Whiteboard from "./pages/Whiteboard";
+import PremiumFeature from "./pages/PremiumFeature";
 import NotFound from "./pages/NotFound";
 
 
@@ -44,6 +45,10 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/whiteboard" element={<Whiteboard />} />
+            <Route path="/notes" element={<PremiumFeature />} />
+            <Route path="/flashcards" element={<PremiumFeature />} />
+            <Route path="/tasks" element={<PremiumFeature />} />
+            <Route path="/settings" element={<PremiumFeature />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
