@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   GraduationCap, 
@@ -15,54 +17,19 @@ import {
   X,
   User,
   PenTool,
-  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
 
-const featureInfo: Record<string, { title: string; description: string; icon: React.ElementType }> = {
-  "/notes": {
-    title: "Notes",
-    description: "Create and organize your study notes with AI-powered summaries and insights.",
-    icon: BookOpen,
-  },
-  "/flashcards": {
-    title: "Flashcards",
-    description: "Generate smart flashcards from your notes and master any topic with spaced repetition.",
-    icon: FlashcardIcon,
-  },
-  "/tasks": {
-    title: "Tasks",
-    description: "Plan your study sessions and track your progress with intelligent task management.",
-    icon: CheckSquare,
-  },
-  "/settings": {
-    title: "Settings",
-    description: "Customize your learning experience with personalized preferences and themes.",
-    icon: Settings,
-  },
-};
+interface AppLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+}
 
-export default function PremiumFeature() {
+export function AppLayout({ children, title }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, isPremium, dailyUsage, maxFreeUsage } = useAuth();
-
-  const feature = featureInfo[location.pathname] || {
-    title: "Premium Feature",
-    description: "This feature is available for premium users.",
-    icon: Lock,
-  };
-
-  const FeatureIcon = feature.icon;
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-    }
-  }, [user, navigate]);
 
   const handleLogout = async () => {
     await signOut();
@@ -201,46 +168,10 @@ export default function PremiumFeature() {
           <button onClick={() => setSidebarOpen(true)} className="text-foreground">
             <Menu className="w-6 h-6" />
           </button>
-          <span className="ml-4 font-semibold">{feature.title}</span>
+          <span className="ml-4 font-semibold">{title || "StudyCap"}</span>
         </header>
 
-        {/* Premium Feature Content */}
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center max-w-md">
-            <div className="w-24 h-24 rounded-3xl bg-accent/20 flex items-center justify-center mx-auto mb-6">
-              <FeatureIcon className="w-12 h-12 text-accent" />
-            </div>
-            <h1 className="text-3xl font-bold mb-3">{feature.title}</h1>
-            <p className="text-muted-foreground mb-8">
-              {feature.description}
-            </p>
-            <div className="bg-card border border-border rounded-2xl p-6 mb-6">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Lock className="w-5 h-5 text-muted-foreground" />
-                <span className="font-medium">Premium Feature</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Unlock this feature and get unlimited access to all StudyCap tools.
-              </p>
-              <Button 
-                variant="accent" 
-                size="lg"
-                className="w-full"
-                onClick={() => window.location.href = `https://buy.stripe.com/test_28EaEXdh7dr11y87olcV200?prefilled_email=${encodeURIComponent(user?.email || '')}`}
-              >
-                <Crown className="w-5 h-5" />
-                Upgrade to Premium
-              </Button>
-            </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/dashboard')}
-            >
-              <Home className="w-4 h-4" />
-              Back to Home
-            </Button>
-          </div>
-        </div>
+        {children}
       </main>
 
       {/* Overlay for mobile sidebar */}
