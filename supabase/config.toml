@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.notes-ai]
 verify_jwt = false
+
+[functions.study-plan]
+verify_jwt = false

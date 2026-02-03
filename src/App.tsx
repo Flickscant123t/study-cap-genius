@@ -13,6 +13,8 @@ import Notes from "./pages/Notes";
 import Flashcards from "./pages/Flashcards";
 import Tasks from "./pages/Tasks";
 import Settings from "./pages/Settings";
+import Success from "./pages/Success";
+import StudyPlanner from "./pages/StudyPlanner";
 import NotFound from "./pages/NotFound";
 
 
@@ -52,6 +54,8 @@ const App = () => (
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/success" element={<Success />} />
+            <Route path="/study-planner" element={<StudyPlanner />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

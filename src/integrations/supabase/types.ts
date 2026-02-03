@@ -97,6 +97,89 @@ export type Database = {
         }
         Relationships: []
       }
+      study_plans: {
+        Row: {
+          created_at: string
+          duration_days: number
+          goal: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          goal: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          goal?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          day_number: number
+          description: string | null
+          id: string
+          mastery_verified: boolean | null
+          plan_id: string | null
+          status: string
+          task_type: string
+          time_estimate_minutes: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          id?: string
+          mastery_verified?: boolean | null
+          plan_id?: string | null
+          status?: string
+          task_type?: string
+          time_estimate_minutes?: number
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          description?: string | null
+          id?: string
+          mastery_verified?: boolean | null
+          plan_id?: string | null
+          status?: string
+          task_type?: string
+          time_estimate_minutes?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_tasks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -182,6 +265,7 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          aura_theme: string | null
           created_at: string
           id: string
           study_persona: string | null
@@ -190,6 +274,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          aura_theme?: string | null
           created_at?: string
           id?: string
           study_persona?: string | null
@@ -198,6 +283,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          aura_theme?: string | null
           created_at?: string
           id?: string
           study_persona?: string | null

@@ -8,68 +8,52 @@ import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFlashcards, Flashcard } from "@/hooks/useFlashcards";
 import { useNotes } from "@/hooks/useNotes";
+import { useWeakPoints } from "@/hooks/useWeakPoints";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { MagicPaste } from "@/components/flashcards/MagicPaste";
+import { StudyMode } from "@/components/flashcards/StudyMode";
 import { 
   Plus, 
   Play,
   Loader2,
   CreditCard,
   Trash2,
-  RotateCcw,
-  Check,
-  X,
-  ChevronLeft,
-  ChevronRight,
   BookOpen,
   Sparkles,
+  Wand2,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ViewMode = 'list' | 'study' | 'create';
+type ViewMode = 'list' | 'study' | 'create' | 'magic-paste';
 
 export default function Flashcards() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
   const [newFront, setNewFront] = useState("");
   const [newBack, setNewBack] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { user, isPremium } = useAuth();
-  const { flashcards, loading, getDueCards, createFlashcard, reviewCard, deleteFlashcard } = useFlashcards();
+  const { user, isPremium, loading: authLoading } = useAuth();
+  const { flashcards, loading, getDueCards, createFlashcard, deleteFlashcard } = useFlashcards();
   const { notes } = useNotes();
+  const { isWeakPoint, getTopWeakPoints } = useWeakPoints();
 
   useEffect(() => {
-    if (!user) navigate('/auth');
-    if (!isPremium) navigate('/flashcards');
-  }, [user, isPremium, navigate]);
+    if (!authLoading && !user) navigate('/auth');
+    if (!authLoading && !isPremium) navigate('/dashboard');
+  }, [user, isPremium, authLoading, navigate]);
 
   if (!isPremium) return null;
 
   const dueCards = getDueCards();
-  const studyCards = dueCards.length > 0 ? dueCards : flashcards;
-  const currentCard = studyCards[currentCardIndex];
+  const topWeakPoints = getTopWeakPoints(3);
 
   const getMasteryScore = () => {
     if (flashcards.length === 0) return 0;
     const avgEase = flashcards.reduce((sum, c) => sum + Number(c.ease_factor), 0) / flashcards.length;
     const avgReps = flashcards.reduce((sum, c) => sum + c.repetitions, 0) / flashcards.length;
-    // Mastery score based on ease factor (1.3-2.5+) and repetitions
     return Math.min(100, Math.round(((avgEase - 1.3) / 1.7) * 50 + Math.min(avgReps * 10, 50)));
-  };
-
-  const handleReview = async (quality: number) => {
-    if (!currentCard) return;
-    await reviewCard(currentCard.id, quality);
-    setShowAnswer(false);
-    
-    if (currentCardIndex < studyCards.length - 1) {
-      setCurrentCardIndex(prev => prev + 1);
-    } else {
-      setViewMode('list');
-      setCurrentCardIndex(0);
-    }
   };
 
   const handleCreateFlashcard = async () => {
@@ -86,95 +70,19 @@ export default function Flashcards() {
   if (viewMode === 'study') {
     return (
       <AppLayout title="Study Mode">
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <div className="w-full max-w-2xl">
-            {/* Progress */}
-            <div className="flex items-center justify-between mb-6">
-              <Button variant="ghost" onClick={() => setViewMode('list')}>
-                <ChevronLeft className="w-4 h-4" />
-                Exit Study
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Card {currentCardIndex + 1} of {studyCards.length}
-              </span>
-            </div>
-            <Progress value={((currentCardIndex + 1) / studyCards.length) * 100} className="mb-8" />
+        <StudyMode onClose={() => setViewMode('list')} />
+      </AppLayout>
+    );
+  }
 
-            {currentCard ? (
-              <>
-                {/* Card */}
-                <Card 
-                  className={cn(
-                    "p-8 min-h-[300px] flex flex-col items-center justify-center text-center cursor-pointer transition-all",
-                    showAnswer ? "bg-primary/5" : "hover:shadow-lg"
-                  )}
-                  onClick={() => setShowAnswer(true)}
-                >
-                  {!showAnswer ? (
-                    <>
-                      <p className="text-xs text-muted-foreground mb-4">QUESTION</p>
-                      <p className="text-2xl font-semibold">{currentCard.front}</p>
-                      <p className="text-sm text-muted-foreground mt-8">Click to reveal answer</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xs text-muted-foreground mb-4">ANSWER</p>
-                      <p className="text-2xl">{currentCard.back}</p>
-                    </>
-                  )}
-                </Card>
-
-                {/* Rating Buttons */}
-                {showAnswer && (
-                  <div className="mt-6 grid grid-cols-4 gap-2">
-                    <Button
-                      variant="outline"
-                      className="flex-col h-auto py-4 border-destructive text-destructive hover:bg-destructive/10"
-                      onClick={() => handleReview(1)}
-                    >
-                      <X className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Again</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-col h-auto py-4 border-orange-500 text-orange-500 hover:bg-orange-500/10"
-                      onClick={() => handleReview(3)}
-                    >
-                      <RotateCcw className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Hard</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-col h-auto py-4 border-primary text-primary hover:bg-primary/10"
-                      onClick={() => handleReview(4)}
-                    >
-                      <Check className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Good</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-col h-auto py-4 border-green-500 text-green-500 hover:bg-green-500/10"
-                      onClick={() => handleReview(5)}
-                    >
-                      <Sparkles className="w-5 h-5 mb-1" />
-                      <span className="text-xs">Easy</span>
-                    </Button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <Card className="p-8 text-center">
-                <Check className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                <h2 className="text-2xl font-bold mb-2">All Done!</h2>
-                <p className="text-muted-foreground mb-4">
-                  You've reviewed all cards for now. Great job!
-                </p>
-                <Button variant="hero" onClick={() => setViewMode('list')}>
-                  Back to Flashcards
-                </Button>
-              </Card>
-            )}
-          </div>
+  if (viewMode === 'magic-paste') {
+    return (
+      <AppLayout title="Magic Paste">
+        <div className="flex-1 flex items-center justify-center p-8">
+          <MagicPaste 
+            onComplete={() => setViewMode('list')} 
+            onCancel={() => setViewMode('list')}
+          />
         </div>
       </AppLayout>
     );
@@ -247,13 +155,17 @@ export default function Flashcards() {
             <p className="text-muted-foreground">Master your knowledge with spaced repetition</p>
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setViewMode('magic-paste')}>
+              <Wand2 className="w-4 h-4" />
+              Magic Paste
+            </Button>
             <Button variant="outline" onClick={() => setViewMode('create')}>
               <Plus className="w-4 h-4" />
               Create
             </Button>
             <Button 
               variant="hero" 
-              onClick={() => { setCurrentCardIndex(0); setShowAnswer(false); setViewMode('study'); }}
+              onClick={() => setViewMode('study')}
               disabled={flashcards.length === 0}
             >
               <Play className="w-4 h-4" />
@@ -288,8 +200,8 @@ export default function Flashcards() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-green-500" />
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-accent" />
               </div>
               <div className="flex-1">
                 <p className="text-2xl font-bold">{masteryScore}%</p>
@@ -299,6 +211,25 @@ export default function Flashcards() {
             <Progress value={masteryScore} className="mt-2 h-2" />
           </Card>
         </div>
+
+        {/* Weak Points Alert */}
+        {topWeakPoints.length > 0 && (
+          <Card className="p-4 mb-6 bg-orange-500/5 border-orange-500/20">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-orange-500 mt-0.5" />
+              <div>
+                <p className="font-medium text-orange-600">Topics that need extra practice:</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {topWeakPoints.map((wp, i) => (
+                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-orange-500/10 text-orange-600">
+                      {wp.topic} ({wp.count}x)
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+        )}
 
         {/* Cards List */}
         {loading ? (
@@ -310,43 +241,63 @@ export default function Flashcards() {
             <CreditCard className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h2 className="text-xl font-semibold mb-2">No Flashcards Yet</h2>
             <p className="text-muted-foreground mb-4">
-              Create flashcards manually or generate them from your notes.
+              Create flashcards manually or use Magic Paste to generate them from your notes.
             </p>
-            <Button variant="hero" onClick={() => setViewMode('create')}>
-              <Plus className="w-4 h-4" />
-              Create Flashcard
-            </Button>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={() => setViewMode('magic-paste')}>
+                <Wand2 className="w-4 h-4" />
+                Magic Paste
+              </Button>
+              <Button variant="hero" onClick={() => setViewMode('create')}>
+                <Plus className="w-4 h-4" />
+                Create Flashcard
+              </Button>
+            </div>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {flashcards.map(card => (
-              <Card key={card.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <span className={cn(
-                    "text-xs px-2 py-1 rounded-full",
-                    card.next_review <= new Date().toISOString()
-                      ? "bg-orange-500/10 text-orange-500"
-                      : "bg-green-500/10 text-green-500"
-                  )}>
-                    {card.next_review <= new Date().toISOString() ? "Due" : "Learned"}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    onClick={() => deleteFlashcard(card.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <p className="font-medium mb-2 line-clamp-2">{card.front}</p>
-                <p className="text-sm text-muted-foreground line-clamp-2">{card.back}</p>
-                <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground flex justify-between">
-                  <span>Interval: {card.interval}d</span>
-                  <span>Ease: {Number(card.ease_factor).toFixed(1)}</span>
-                </div>
-              </Card>
-            ))}
+            {flashcards.map(card => {
+              const cardIsWeak = isWeakPoint(card.front);
+              return (
+                <Card 
+                  key={card.id} 
+                  className={cn(
+                    "p-4 hover:shadow-md transition-shadow",
+                    cardIsWeak && "border-orange-500/30 bg-orange-500/5"
+                  )}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-xs px-2 py-1 rounded-full",
+                        card.next_review && card.next_review <= new Date().toISOString()
+                          ? "bg-orange-500/10 text-orange-500"
+                          : "bg-accent/10 text-accent"
+                      )}>
+                        {card.next_review && card.next_review <= new Date().toISOString() ? "Due" : "Learned"}
+                      </span>
+                      {cardIsWeak && (
+                        <AlertTriangle className="w-3 h-3 text-orange-500" />
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => deleteFlashcard(card.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <p className="font-medium mb-2 line-clamp-2">{card.front}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{card.back}</p>
+                  <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground flex justify-between">
+                    <span>Interval: {card.interval}d</span>
+                    <span>Ease: {Number(card.ease_factor).toFixed(1)}</span>
+                  </div>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

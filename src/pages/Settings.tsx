@@ -8,7 +8,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { 
   Loader2,
   User,
-  Palette,
   Trophy,
   BookOpen,
   Lightbulb,
@@ -18,8 +17,13 @@ import {
   Moon,
   Monitor,
   Contrast,
+  Palette,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+
+export type AuraTheme = 'default' | 'midnight' | 'forest' | 'sunset';
 
 const personas: { id: StudyPersona; name: string; description: string; icon: React.ElementType }[] = [
   { id: 'coach', name: 'The Coach', description: 'Energetic and motivational. Pushes you to achieve your best!', icon: Trophy },
@@ -35,15 +39,57 @@ const themes: { id: Theme; name: string; description: string; icon: React.Elemen
   { id: 'system', name: 'System', description: 'Follow your device settings', icon: Monitor },
 ];
 
+const auraThemes: { id: AuraTheme; name: string; description: string; colors: string[] }[] = [
+  { id: 'default', name: 'Default', description: 'Original purple theme', colors: ['#6366f1', '#8b5cf6', '#a855f7'] },
+  { id: 'midnight', name: 'Midnight', description: 'Deep blue with gold accents', colors: ['#1e3a5f', '#3b82f6', '#fbbf24'] },
+  { id: 'forest', name: 'Forest', description: 'Dark green with stone tones', colors: ['#14532d', '#22c55e', '#a3a3a3'] },
+  { id: 'sunset', name: 'Sunset', description: 'Vivid orange meets deep purple', colors: ['#581c87', '#f97316', '#a855f7'] },
+];
+
 export default function Settings() {
   const navigate = useNavigate();
   const { user, isPremium } = useAuth();
   const { preferences, loading, updatePreferences } = usePreferences();
+  const [auraTheme, setAuraTheme] = useState<AuraTheme>('default');
 
   useEffect(() => {
     if (!user) navigate('/auth');
-    if (!isPremium) navigate('/settings');
+    if (!isPremium) navigate('/dashboard');
   }, [user, isPremium, navigate]);
+
+  useEffect(() => {
+    // Load aura theme from localStorage or DB
+    const stored = localStorage.getItem('studycap_aura_theme') as AuraTheme | null;
+    if (stored) {
+      setAuraTheme(stored);
+      applyAuraTheme(stored);
+    }
+  }, []);
+
+  const applyAuraTheme = (theme: AuraTheme) => {
+    const root = document.documentElement;
+    // Remove all aura theme classes
+    root.classList.remove('midnight', 'forest', 'sunset');
+    
+    // Apply the new aura theme (if not default)
+    if (theme !== 'default') {
+      root.classList.add(theme);
+    }
+  };
+
+  const handleAuraThemeChange = async (theme: AuraTheme) => {
+    setAuraTheme(theme);
+    localStorage.setItem('studycap_aura_theme', theme);
+    applyAuraTheme(theme);
+
+    // Also save to DB
+    if (user) {
+      await supabase
+        .from('user_preferences')
+        .update({ aura_theme: theme })
+        .eq('user_id', user.id);
+    }
+  };
 
   if (!isPremium) return null;
 
@@ -85,6 +131,49 @@ export default function Settings() {
             </div>
           </div>
         </Card>
+
+        {/* Aura Themes (Premium) */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-lg font-semibold">Aura Themes</h2>
+            <span className="px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground">
+              <Sparkles className="w-3 h-3 inline mr-1" />
+              Premium
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Transform your entire app with premium color themes
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {auraThemes.map(theme => (
+              <Card
+                key={theme.id}
+                className={cn(
+                  "p-4 cursor-pointer transition-all hover:shadow-md",
+                  auraTheme === theme.id && "border-primary ring-2 ring-primary/20"
+                )}
+                onClick={() => handleAuraThemeChange(theme.id)}
+              >
+                <div className="flex gap-1 mb-3">
+                  {theme.colors.map((color, i) => (
+                    <div
+                      key={i}
+                      className="w-8 h-8 rounded-lg"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <p className="font-medium text-sm">{theme.name}</p>
+                  {auraTheme === theme.id && (
+                    <Check className="w-4 h-4 text-primary" />
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{theme.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
 
         {/* AI Study Persona */}
         <div className="mb-8">
@@ -128,9 +217,9 @@ export default function Settings() {
 
         {/* Theme */}
         <div>
-          <h2 className="text-lg font-semibold mb-1">Theme</h2>
+          <h2 className="text-lg font-semibold mb-1">Base Theme</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Choose your preferred appearance
+            Choose light or dark mode (combined with Aura theme)
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {themes.map(theme => (

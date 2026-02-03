@@ -17,6 +17,7 @@ import {
   X,
   User,
   PenTool,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", isFree: true },
+    { icon: Target, label: "Study Planner", path: "/study-planner", isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", isFree: false },
     { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", isFree: false },
     { icon: CheckSquare, label: "Tasks", path: "/tasks", isFree: false },
