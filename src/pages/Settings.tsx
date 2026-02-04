@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences, StudyPersona, Theme } from "@/hooks/usePreferences";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PremiumModal } from "@/components/premium/PremiumModal";
 import { 
   Loader2,
   User,
@@ -17,8 +18,8 @@ import {
   Moon,
   Monitor,
   Contrast,
-  Palette,
-  Sparkles,
+  Lock,
+  Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,23 +49,23 @@ const auraThemes: { id: AuraTheme; name: string; description: string; colors: st
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, loading: authLoading } = useAuth();
   const { preferences, loading, updatePreferences } = usePreferences();
   const [auraTheme, setAuraTheme] = useState<AuraTheme>('default');
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   useEffect(() => {
-    if (!user) navigate('/auth');
-    if (!isPremium) navigate('/dashboard');
-  }, [user, isPremium, navigate]);
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     // Load aura theme from localStorage or DB
     const stored = localStorage.getItem('studycap_aura_theme') as AuraTheme | null;
-    if (stored) {
+    if (stored && isPremium) {
       setAuraTheme(stored);
       applyAuraTheme(stored);
     }
-  }, []);
+  }, [isPremium]);
 
   const applyAuraTheme = (theme: AuraTheme) => {
     const root = document.documentElement;
@@ -78,6 +79,11 @@ export default function Settings() {
   };
 
   const handleAuraThemeChange = async (theme: AuraTheme) => {
+    if (!isPremium) {
+      setShowPremiumModal(true);
+      return;
+    }
+
     setAuraTheme(theme);
     localStorage.setItem('studycap_aura_theme', theme);
     applyAuraTheme(theme);
@@ -91,17 +97,15 @@ export default function Settings() {
     }
   };
 
-  if (!isPremium) return null;
-
   const handlePersonaChange = async (persona: StudyPersona) => {
-    await updatePreferences({ study_persona: persona });
+    await updatePreferences?.({ study_persona: persona });
   };
 
   const handleThemeChange = async (theme: Theme) => {
-    await updatePreferences({ theme });
+    await updatePreferences?.({ theme });
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <AppLayout title="Settings">
         <div className="flex-1 flex items-center justify-center">
@@ -114,6 +118,14 @@ export default function Settings() {
   return (
     <AppLayout title="Settings">
       <div className="flex-1 p-6 max-w-4xl mx-auto">
+        {/* Premium Modal */}
+        <PremiumModal
+          open={showPremiumModal}
+          onOpenChange={setShowPremiumModal}
+          featureName="Aura Themes"
+          featureDescription="Premium Aura Themes transform your entire app with beautiful color palettes. Upgrade to unlock Midnight, Forest, and Sunset themes."
+        />
+
         <h1 className="text-2xl font-bold mb-2">Settings</h1>
         <p className="text-muted-foreground mb-8">Customize your learning experience</p>
 
@@ -125,9 +137,16 @@ export default function Settings() {
             </div>
             <div>
               <p className="font-semibold text-lg">{user?.email}</p>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
-                Premium Member
-              </span>
+              {isPremium ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+                  <Crown className="w-3 h-3" />
+                  Premium Member
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
+                  Free Plan
+                </span>
+              )}
             </div>
           </div>
         </Card>
@@ -136,8 +155,8 @@ export default function Settings() {
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-1">
             <h2 className="text-lg font-semibold">Aura Themes</h2>
-            <span className="px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground">
-              <Sparkles className="w-3 h-3 inline mr-1" />
+            <span className="px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground flex items-center gap-1">
+              <Crown className="w-3 h-3" />
               Premium
             </span>
           </div>
@@ -145,33 +164,51 @@ export default function Settings() {
             Transform your entire app with premium color themes
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {auraThemes.map(theme => (
-              <Card
-                key={theme.id}
-                className={cn(
-                  "p-4 cursor-pointer transition-all hover:shadow-md",
-                  auraTheme === theme.id && "border-primary ring-2 ring-primary/20"
-                )}
-                onClick={() => handleAuraThemeChange(theme.id)}
-              >
-                <div className="flex gap-1 mb-3">
-                  {theme.colors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="w-8 h-8 rounded-lg"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-sm">{theme.name}</p>
-                  {auraTheme === theme.id && (
-                    <Check className="w-4 h-4 text-primary" />
+            {auraThemes.map(theme => {
+              const isLocked = !isPremium && theme.id !== 'default';
+              const isSelected = auraTheme === theme.id;
+              
+              return (
+                <Card
+                  key={theme.id}
+                  className={cn(
+                    "p-4 cursor-pointer transition-all relative",
+                    isSelected && isPremium && "border-primary ring-2 ring-primary/20",
+                    isLocked && "opacity-50"
                   )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">{theme.description}</p>
-              </Card>
-            ))}
+                  onClick={() => handleAuraThemeChange(theme.id)}
+                >
+                  {/* Locked Overlay for non-premium */}
+                  {isLocked && (
+                    <div className="absolute inset-0 bg-background/60 rounded-lg flex items-center justify-center z-10">
+                      <Lock className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-1 mb-3">
+                    {theme.colors.map((color, i) => (
+                      <div
+                        key={i}
+                        className="w-8 h-8 rounded-lg"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm">{theme.name}</p>
+                    {isSelected && isPremium && (
+                      <Check className="w-4 h-4 text-primary" />
+                    )}
+                    {isLocked && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                        Pro
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{theme.description}</p>
+                </Card>
+              );
+            })}
           </div>
         </div>
 

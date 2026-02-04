@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotes, Note } from "@/hooks/useNotes";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { NotesAISidebar } from "@/components/notes/NotesAISidebar";
+import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
 import { 
   Plus, 
   FileText, 
@@ -15,7 +16,6 @@ import {
   Search,
   Loader2,
   Sparkles,
-  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,19 +28,30 @@ export default function Notes() {
   const [showAI, setShowAI] = useState(false);
   
   const navigate = useNavigate();
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, loading: authLoading } = useAuth();
   const { notes, loading, createNote, updateNote, deleteNote } = useNotes();
 
   useEffect(() => {
-    if (!user) navigate('/auth');
-    if (!isPremium) navigate('/notes'); // Will show PremiumFeature page
-  }, [user, isPremium, navigate]);
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
 
-  if (!isPremium) return null;
+  // Show premium locked view for non-premium users
+  if (!isPremium && !authLoading) {
+    return (
+      <AppLayout title="Notes">
+        <PremiumLockedView 
+          title="Unlock AI-Powered Notes"
+          description="Premium Notes include AI summaries, concept insights, and gap analysis to supercharge your learning."
+          featureName="Notes"
+        />
+      </AppLayout>
+    );
+  }
 
-  const filteredNotes = notes.filter(note => 
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase())
+  const noteList = notes ?? [];
+  const filteredNotes = noteList.filter(note => 
+    note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    note.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleCreateNote = async () => {
@@ -98,7 +109,7 @@ export default function Notes() {
           </div>
           
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
-            {loading ? (
+            {loading || authLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>

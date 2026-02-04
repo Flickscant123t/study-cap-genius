@@ -18,6 +18,7 @@ import {
   User,
   PenTool,
   Target,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,14 +38,16 @@ export function AppLayout({ children, title }: AppLayoutProps) {
     navigate('/');
   };
 
+  // Settings and Tasks are accessible to free users (with limits)
+  // Notes, Flashcards, Study Planner are premium-only but show locked view
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", isFree: true },
     { icon: Target, label: "Study Planner", path: "/study-planner", isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", isFree: false },
-    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", isFree: false },
-    { icon: CheckSquare, label: "Tasks", path: "/tasks", isFree: false },
-    { icon: Settings, label: "Settings", path: "/settings", isFree: false },
+    { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", isFree: true }, // Allow access with modal locks
+    { icon: CheckSquare, label: "Tasks", path: "/tasks", isFree: true }, // Allow with 5 task limit
+    { icon: Settings, label: "Settings", path: "/settings", isFree: true }, // Allow with locked aura themes
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -111,23 +114,30 @@ export function AppLayout({ children, title }: AppLayoutProps) {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1">
-            {navItems.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => navigate(item.path)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
-                  isActive(item.path)
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : item.isFree
-                    ? "bg-primary/10 text-sidebar-foreground hover:bg-primary/20"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                {item.label}
-              </button>
-            ))}
+            {navItems.map((item) => {
+              const showLock = !isPremium && !item.isFree;
+              
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                    isActive(item.path)
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : item.isFree
+                      ? "bg-primary/10 text-sidebar-foreground hover:bg-primary/20"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  )}
+                >
+                  <item.icon className="w-5 h-5" />
+                  <span className="flex-1 text-left">{item.label}</span>
+                  {showLock && (
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
           {/* Upgrade Button (for free users) */}

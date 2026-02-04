@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +11,7 @@ import { useWeakPoints } from "@/hooks/useWeakPoints";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { MagicPaste } from "@/components/flashcards/MagicPaste";
 import { StudyMode } from "@/components/flashcards/StudyMode";
+import { PremiumModal } from "@/components/premium/PremiumModal";
 import { 
   Plus, 
   Play,
@@ -22,6 +22,7 @@ import {
   Sparkles,
   Wand2,
   AlertTriangle,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +33,7 @@ export default function Flashcards() {
   const [newFront, setNewFront] = useState("");
   const [newBack, setNewBack] = useState("");
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const navigate = useNavigate();
   const { user, isPremium, loading: authLoading } = useAuth();
@@ -41,18 +43,16 @@ export default function Flashcards() {
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
-    if (!authLoading && !isPremium) navigate('/dashboard');
-  }, [user, isPremium, authLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  if (!isPremium) return null;
-
-  const dueCards = getDueCards();
-  const topWeakPoints = getTopWeakPoints(3);
+  const cardList = flashcards ?? [];
+  const dueCards = getDueCards?.() ?? [];
+  const topWeakPoints = getTopWeakPoints?.(3) ?? [];
 
   const getMasteryScore = () => {
-    if (flashcards.length === 0) return 0;
-    const avgEase = flashcards.reduce((sum, c) => sum + Number(c.ease_factor), 0) / flashcards.length;
-    const avgReps = flashcards.reduce((sum, c) => sum + c.repetitions, 0) / flashcards.length;
+    if (cardList.length === 0) return 0;
+    const avgEase = cardList.reduce((sum, c) => sum + Number(c.ease_factor), 0) / cardList.length;
+    const avgReps = cardList.reduce((sum, c) => sum + c.repetitions, 0) / cardList.length;
     return Math.min(100, Math.round(((avgEase - 1.3) / 1.7) * 50 + Math.min(avgReps * 10, 50)));
   };
 
@@ -65,9 +65,22 @@ export default function Flashcards() {
     setViewMode('list');
   };
 
+  const handleMagicPasteClick = () => {
+    if (!isPremium) {
+      setShowPremiumModal(true);
+      return;
+    }
+    setViewMode('magic-paste');
+  };
+
   const masteryScore = getMasteryScore();
 
   if (viewMode === 'study') {
+    if (!isPremium) {
+      setViewMode('list');
+      setShowPremiumModal(true);
+      return null;
+    }
     return (
       <AppLayout title="Study Mode">
         <StudyMode onClose={() => setViewMode('list')} />
@@ -76,6 +89,10 @@ export default function Flashcards() {
   }
 
   if (viewMode === 'magic-paste') {
+    if (!isPremium) {
+      setViewMode('list');
+      return null;
+    }
     return (
       <AppLayout title="Magic Paste">
         <div className="flex-1 flex items-center justify-center p-8">
@@ -124,7 +141,7 @@ export default function Flashcards() {
                   className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 >
                   <option value="">No link</option>
-                  {notes.map(note => (
+                  {(notes ?? []).map(note => (
                     <option key={note.id} value={note.id}>{note.title}</option>
                   ))}
                 </select>
@@ -148,6 +165,14 @@ export default function Flashcards() {
   return (
     <AppLayout title="Flashcards">
       <div className="flex-1 p-6">
+        {/* Premium Modal for AI Features */}
+        <PremiumModal
+          open={showPremiumModal}
+          onOpenChange={setShowPremiumModal}
+          featureName="AI-Powered Flashcards"
+          featureDescription="Magic Paste and Study Mode with AI explanations are Pro features. Upgrade to unlock intelligent flashcard generation and personalized learning."
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -155,9 +180,14 @@ export default function Flashcards() {
             <p className="text-muted-foreground">Master your knowledge with spaced repetition</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setViewMode('magic-paste')}>
+            <Button 
+              variant="outline" 
+              onClick={handleMagicPasteClick}
+              className={cn(!isPremium && "opacity-70")}
+            >
               <Wand2 className="w-4 h-4" />
               Magic Paste
+              {!isPremium && <Lock className="w-3 h-3 ml-1" />}
             </Button>
             <Button variant="outline" onClick={() => setViewMode('create')}>
               <Plus className="w-4 h-4" />
@@ -165,11 +195,18 @@ export default function Flashcards() {
             </Button>
             <Button 
               variant="hero" 
-              onClick={() => setViewMode('study')}
-              disabled={flashcards.length === 0}
+              onClick={() => {
+                if (!isPremium) {
+                  setShowPremiumModal(true);
+                  return;
+                }
+                setViewMode('study');
+              }}
+              disabled={cardList.length === 0}
             >
               <Play className="w-4 h-4" />
               Study ({dueCards.length} due)
+              {!isPremium && <Lock className="w-3 h-3 ml-1" />}
             </Button>
           </div>
         </div>
@@ -182,15 +219,15 @@ export default function Flashcards() {
                 <CreditCard className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{flashcards.length}</p>
+                <p className="text-2xl font-bold">{cardList.length}</p>
                 <p className="text-sm text-muted-foreground">Total Cards</p>
               </div>
             </div>
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                <BookOpen className="w-5 h-5 text-accent" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{dueCards.length}</p>
@@ -200,8 +237,8 @@ export default function Flashcards() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-accent" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-2xl font-bold">{masteryScore}%</p>
@@ -213,15 +250,15 @@ export default function Flashcards() {
         </div>
 
         {/* Weak Points Alert */}
-        {topWeakPoints.length > 0 && (
-          <Card className="p-4 mb-6 bg-orange-500/5 border-orange-500/20">
+        {topWeakPoints.length > 0 && isPremium && (
+          <Card className="p-4 mb-6 bg-accent/5 border-accent/20">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="w-5 h-5 text-orange-500 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-accent mt-0.5" />
               <div>
-                <p className="font-medium text-orange-600">Topics that need extra practice:</p>
+                <p className="font-medium">Topics that need extra practice:</p>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {topWeakPoints.map((wp, i) => (
-                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-orange-500/10 text-orange-600">
+                    <span key={i} className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent">
                       {wp.topic} ({wp.count}x)
                     </span>
                   ))}
@@ -232,11 +269,11 @@ export default function Flashcards() {
         )}
 
         {/* Cards List */}
-        {loading ? (
+        {loading || authLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : flashcards.length === 0 ? (
+        ) : cardList.length === 0 ? (
           <Card className="p-16 text-center">
             <CreditCard className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h2 className="text-xl font-semibold mb-2">No Flashcards Yet</h2>
@@ -244,9 +281,14 @@ export default function Flashcards() {
               Create flashcards manually or use Magic Paste to generate them from your notes.
             </p>
             <div className="flex gap-2 justify-center">
-              <Button variant="outline" onClick={() => setViewMode('magic-paste')}>
+              <Button 
+                variant="outline" 
+                onClick={handleMagicPasteClick}
+                className={cn(!isPremium && "opacity-70")}
+              >
                 <Wand2 className="w-4 h-4" />
                 Magic Paste
+                {!isPremium && <Lock className="w-3 h-3 ml-1" />}
               </Button>
               <Button variant="hero" onClick={() => setViewMode('create')}>
                 <Plus className="w-4 h-4" />
@@ -256,14 +298,14 @@ export default function Flashcards() {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {flashcards.map(card => {
-              const cardIsWeak = isWeakPoint(card.front);
+            {cardList.map(card => {
+              const cardIsWeak = isPremium && isWeakPoint?.(card.front);
               return (
                 <Card 
                   key={card.id} 
                   className={cn(
                     "p-4 hover:shadow-md transition-shadow",
-                    cardIsWeak && "border-orange-500/30 bg-orange-500/5"
+                    cardIsWeak && "border-accent/30 bg-accent/5"
                   )}
                 >
                   <div className="flex justify-between items-start mb-3">
@@ -271,13 +313,13 @@ export default function Flashcards() {
                       <span className={cn(
                         "text-xs px-2 py-1 rounded-full",
                         card.next_review && card.next_review <= new Date().toISOString()
-                          ? "bg-orange-500/10 text-orange-500"
-                          : "bg-accent/10 text-accent"
+                          ? "bg-accent/10 text-accent"
+                          : "bg-primary/10 text-primary"
                       )}>
                         {card.next_review && card.next_review <= new Date().toISOString() ? "Due" : "Learned"}
                       </span>
                       {cardIsWeak && (
-                        <AlertTriangle className="w-3 h-3 text-orange-500" />
+                        <AlertTriangle className="w-3 h-3 text-accent" />
                       )}
                     </div>
                     <Button
