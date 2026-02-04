@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StudyPlanView } from "@/components/study/StudyPlanView";
+import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
 import { Loader2 } from "lucide-react";
 
 export default function StudyPlanner() {
@@ -11,8 +12,7 @@ export default function StudyPlanner() {
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
-    if (!loading && !isPremium) navigate('/dashboard');
-  }, [user, isPremium, loading, navigate]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -24,7 +24,18 @@ export default function StudyPlanner() {
     );
   }
 
-  if (!isPremium) return null;
+  // Show premium locked view for non-premium users
+  if (!isPremium) {
+    return (
+      <AppLayout title="Study Planner">
+        <PremiumLockedView 
+          title="Unlock AI Study Planner"
+          description="Get personalized multi-day study plans with AI tutoring and mastery verification."
+          featureName="Study Planner"
+        />
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout title="Study Planner">

@@ -11,6 +11,8 @@ import { useTasks, Task } from "@/hooks/useTasks";
 import { useNotes } from "@/hooks/useNotes";
 import { useFlashcards } from "@/hooks/useFlashcards";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
+import { LimitReachedCard } from "@/components/premium/LimitReachedCard";
 import { 
   Plus, 
   Loader2,
@@ -23,6 +25,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const FREE_TASK_LIMIT = 5;
+
 export default function Tasks() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -32,21 +36,18 @@ export default function Tasks() {
   const [newDueDate, setNewDueDate] = useState("");
 
   const navigate = useNavigate();
-  const { user, isPremium } = useAuth();
+  const { user, isPremium, loading: authLoading } = useAuth();
   const { tasks, loading, createTask, updateTask, deleteTask } = useTasks();
   const { notes } = useNotes();
   const { flashcards } = useFlashcards();
 
   useEffect(() => {
-    if (!user) navigate('/auth');
-    if (!isPremium) navigate('/tasks');
-  }, [user, isPremium, navigate]);
-
-  if (!isPremium) return null;
+    if (!authLoading && !user) navigate('/auth');
+  }, [user, authLoading, navigate]);
 
   // Calculate mastery scores by subject/note
   const getMasteryByNote = (noteId: string) => {
-    const noteCards = flashcards.filter(c => c.note_id === noteId);
+    const noteCards = flashcards?.filter(c => c.note_id === noteId) ?? [];
     if (noteCards.length === 0) return null;
     
     const avgEase = noteCards.reduce((sum, c) => sum + Number(c.ease_factor), 0) / noteCards.length;
@@ -75,23 +76,49 @@ export default function Tasks() {
     high: 'text-red-500 bg-red-500/10',
   };
 
-  const completedTasks = tasks.filter(t => t.completed);
-  const pendingTasks = tasks.filter(t => !t.completed);
+  const taskList = tasks ?? [];
+  const completedTasks = taskList.filter(t => t.completed);
+  const pendingTasks = taskList.filter(t => !t.completed);
+  const hasReachedLimit = !isPremium && taskList.length >= FREE_TASK_LIMIT;
 
-  return (
-    <AppLayout title="Tasks">
-      <div className="flex-1 p-6">
+  // Show premium locked view for non-premium users - but show basic tasks UI
+  const renderContent = () => {
+    if (loading || authLoading) {
+      return (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    return (
+      <>
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Tasks</h1>
             <p className="text-muted-foreground">Track your study progress and assignments</p>
           </div>
-          <Button variant="hero" onClick={() => setShowCreateForm(true)}>
+          <Button 
+            variant="hero" 
+            onClick={() => setShowCreateForm(true)}
+            disabled={hasReachedLimit}
+          >
             <Plus className="w-4 h-4" />
             Add Task
           </Button>
         </div>
+
+        {/* Limit Reached Warning */}
+        {hasReachedLimit && (
+          <div className="mb-6">
+            <LimitReachedCard 
+              currentCount={taskList.length} 
+              maxCount={FREE_TASK_LIMIT} 
+              itemName="tasks" 
+            />
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -124,7 +151,7 @@ export default function Tasks() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {tasks.filter(t => t.priority === 'high' && !t.completed).length}
+                  {taskList.filter(t => t.priority === 'high' && !t.completed).length}
                 </p>
                 <p className="text-sm text-muted-foreground">High Priority</p>
               </div>
@@ -184,7 +211,7 @@ export default function Tasks() {
                   className="mt-1 w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 >
                   <option value="">No link</option>
-                  {notes.map(note => (
+                  {(notes ?? []).map(note => (
                     <option key={note.id} value={note.id}>{note.title}</option>
                   ))}
                 </select>
@@ -202,11 +229,7 @@ export default function Tasks() {
         )}
 
         {/* Tasks List */}
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : tasks.length === 0 ? (
+        {taskList.length === 0 ? (
           <Card className="p-16 text-center">
             <CheckSquare className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h2 className="text-xl font-semibold mb-2">No Tasks Yet</h2>
@@ -226,7 +249,7 @@ export default function Tasks() {
                 <h3 className="font-semibold mb-3">Pending ({pendingTasks.length})</h3>
                 <div className="space-y-2">
                   {pendingTasks.map(task => {
-                    const linkedNote = notes.find(n => n.id === task.note_id);
+                    const linkedNote = (notes ?? []).find(n => n.id === task.note_id);
                     const mastery = task.note_id ? getMasteryByNote(task.note_id) : null;
                     
                     return (
@@ -319,6 +342,26 @@ export default function Tasks() {
             )}
           </div>
         )}
+
+        {/* Premium Upsell for Free Users */}
+        {!isPremium && taskList.length > 0 && !hasReachedLimit && (
+          <Card className="p-4 mt-6 bg-primary/5 border-primary/20 text-center">
+            <p className="text-sm text-muted-foreground mb-2">
+              {FREE_TASK_LIMIT - taskList.length} free tasks remaining
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Upgrade to Pro for unlimited tasks and premium features
+            </p>
+          </Card>
+        )}
+      </>
+    );
+  };
+
+  return (
+    <AppLayout title="Tasks">
+      <div className="flex-1 p-6">
+        {renderContent()}
       </div>
     </AppLayout>
   );
