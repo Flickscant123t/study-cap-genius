@@ -3,19 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotes, Note } from "@/hooks/useNotes";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { NotesAISidebar } from "@/components/notes/NotesAISidebar";
+import { MarkdownEditor } from "@/components/notes/MarkdownEditor";
+import { MarkdownPreview } from "@/components/notes/MarkdownPreview";
+import { MindMapView } from "@/components/notes/MindMapView";
+import { FolderTree } from "@/components/notes/FolderTree";
+import { NotesQuizGenerator } from "@/components/notes/NotesQuizGenerator";
 import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
-import { 
-  Plus, 
-  FileText, 
-  Trash2, 
-  Search,
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Plus,
+  FileText,
+  Trash2,
   Loader2,
   Sparkles,
+  Edit,
+  Eye,
+  Network,
+  Brain,
+  ChevronLeft,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,24 +35,35 @@ export default function Notes() {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [showAI, setShowAI] = useState(false);
-  
+  const [showQuiz, setShowQuiz] = useState(false);
+  const [viewMode, setViewMode] = useState<"editor" | "preview" | "mindmap">("editor");
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [favoriteNotes, setFavoriteNotes] = useState<string[]>(() => {
+    const stored = localStorage.getItem("favorite_notes");
+    return stored ? JSON.parse(stored) : [];
+  });
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
   const navigate = useNavigate();
   const { user, isPremium, loading: authLoading } = useAuth();
   const { notes, loading, createNote, updateNote, deleteNote } = useNotes();
 
   useEffect(() => {
-    if (!authLoading && !user) navigate('/auth');
+    if (!authLoading && !user) navigate("/auth");
   }, [user, authLoading, navigate]);
+
+  useEffect(() => {
+    localStorage.setItem("favorite_notes", JSON.stringify(favoriteNotes));
+  }, [favoriteNotes]);
 
   // Show premium locked view for non-premium users
   if (!isPremium && !authLoading) {
     return (
       <AppLayout title="Notes">
-        <PremiumLockedView 
+        <PremiumLockedView
           title="Unlock AI-Powered Notes"
-          description="Premium Notes include AI summaries, concept insights, and gap analysis to supercharge your learning."
+          description="Premium Notes include rich Markdown editing, LaTeX support, AI summaries, mind maps, and quiz generation."
           featureName="Notes"
         />
       </AppLayout>
@@ -49,10 +71,6 @@ export default function Notes() {
   }
 
   const noteList = notes ?? [];
-  const filteredNotes = noteList.filter(note => 
-    note.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleCreateNote = async () => {
     const note = await createNote("Untitled Note");
@@ -61,6 +79,7 @@ export default function Notes() {
       setEditTitle(note.title);
       setEditContent(note.content);
       setIsEditing(true);
+      setViewMode("editor");
     }
   };
 
@@ -84,92 +103,129 @@ export default function Notes() {
     setEditTitle(note.title);
     setEditContent(note.content);
     setIsEditing(false);
+    setShowQuiz(false);
+    setViewMode("preview");
+  };
+
+  const toggleFavorite = (noteId: string) => {
+    setFavoriteNotes((prev) =>
+      prev.includes(noteId) ? prev.filter((id) => id !== noteId) : [...prev, noteId]
+    );
   };
 
   return (
     <AppLayout title="Notes">
       <div className="flex-1 flex">
-        {/* Notes List */}
-        <div className="w-72 border-r border-border flex flex-col">
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <Button size="icon" variant="hero" onClick={handleCreateNote}>
+        {/* Folder Sidebar */}
+        <div
+          className={cn(
+            "border-r border-border flex flex-col bg-card transition-all duration-300",
+            sidebarCollapsed ? "w-0 overflow-hidden" : "w-64"
+          )}
+        >
+          <div className="p-3 border-b border-border flex items-center justify-between">
+            <span className="font-semibold text-sm">Notes</span>
+            <div className="flex items-center gap-1">
+              <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCreateNote}>
                 <Plus className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={() => setSidebarCollapsed(true)}
+              >
+                <PanelLeftClose className="w-4 h-4" />
               </Button>
             </div>
           </div>
-          
-          <div className="flex-1 overflow-y-auto p-2 space-y-1">
+
+          <div className="flex-1 overflow-y-auto p-2">
             {loading || authLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
-            ) : filteredNotes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No notes yet</p>
-                <p className="text-sm">Click + to create one</p>
-              </div>
             ) : (
-              filteredNotes.map(note => (
-                <button
-                  key={note.id}
-                  onClick={() => handleSelectNote(note)}
-                  className={cn(
-                    "w-full text-left p-3 rounded-lg transition-colors",
-                    selectedNote?.id === note.id
-                      ? "bg-primary/10 border border-primary/20"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <p className="font-medium text-sm truncate">{note.title}</p>
-                  <p className="text-xs text-muted-foreground truncate mt-1">
-                    {note.content || "Empty note"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {new Date(note.updated_at).toLocaleDateString()}
-                  </p>
-                </button>
-              ))
+              <FolderTree
+                notes={noteList}
+                selectedNoteId={selectedNote?.id || null}
+                onSelectNote={handleSelectNote}
+                onSelectFolder={setCurrentFolderId}
+                currentFolderId={currentFolderId}
+                favoriteNotes={favoriteNotes}
+                onToggleFavorite={toggleFavorite}
+              />
             )}
           </div>
         </div>
 
-        {/* Note Editor */}
+        {/* Main Editor Area */}
         <div className="flex-1 flex flex-col">
+          {sidebarCollapsed && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-20 left-2 z-10 h-8 w-8"
+              onClick={() => setSidebarCollapsed(false)}
+            >
+              <PanelLeft className="w-4 h-4" />
+            </Button>
+          )}
+
           {selectedNote ? (
             <>
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <div className="flex-1">
+              {/* Note Header */}
+              <div className="p-4 border-b border-border flex items-center justify-between bg-card">
+                <div className="flex items-center gap-3 flex-1">
                   {isEditing ? (
                     <Input
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="text-xl font-bold border-none px-0 focus-visible:ring-0"
+                      className="text-xl font-bold border-none px-0 focus-visible:ring-0 max-w-md"
                       placeholder="Note title..."
                     />
                   ) : (
                     <h1 className="text-xl font-bold">{selectedNote.title}</h1>
                   )}
                 </div>
+
                 <div className="flex items-center gap-2">
+                  {/* View Mode Tabs */}
+                  {!isEditing && (
+                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+                      <TabsList className="h-9">
+                        <TabsTrigger value="preview" className="text-xs">
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          View
+                        </TabsTrigger>
+                        <TabsTrigger value="mindmap" className="text-xs">
+                          <Network className="w-3.5 h-3.5 mr-1" />
+                          Mind Map
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+                  )}
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowQuiz(!showQuiz)}
+                    className={cn(showQuiz && "bg-primary/10")}
+                    title="Generate Quiz"
+                  >
+                    <Brain className="w-4 h-4" />
+                  </Button>
+
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setShowAI(!showAI)}
                     className={cn(showAI && "bg-primary/10")}
+                    title="AI Assistant"
                   >
                     <Sparkles className="w-4 h-4" />
                   </Button>
+
                   {isEditing ? (
                     <>
                       <Button variant="ghost" onClick={() => setIsEditing(false)}>
@@ -182,10 +238,11 @@ export default function Notes() {
                   ) : (
                     <>
                       <Button variant="outline" onClick={() => setIsEditing(true)}>
+                        <Edit className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         onClick={() => handleDeleteNote(selectedNote.id)}
                         className="text-destructive hover:text-destructive"
@@ -196,34 +253,34 @@ export default function Notes() {
                   )}
                 </div>
               </div>
-              
-              <div className="flex-1 flex">
-                <div className="flex-1 p-4">
-                  {isEditing ? (
-                    <Textarea
+
+              {/* Note Content */}
+              <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 overflow-hidden">
+                  {showQuiz ? (
+                    <div className="p-6 overflow-auto h-full">
+                      <NotesQuizGenerator
+                        note={selectedNote}
+                        onClose={() => setShowQuiz(false)}
+                      />
+                    </div>
+                  ) : isEditing ? (
+                    <MarkdownEditor
                       value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="w-full h-full resize-none border-none focus-visible:ring-0"
-                      placeholder="Start writing..."
+                      onChange={setEditContent}
+                      placeholder="Start writing with Markdown, LaTeX ($...$), or code blocks..."
                     />
+                  ) : viewMode === "mindmap" ? (
+                    <MindMapView content={selectedNote.content} title={selectedNote.title} />
                   ) : (
-                    <div className="prose prose-sm dark:prose-invert max-w-none whitespace-pre-wrap">
-                      {selectedNote.content || (
-                        <span className="text-muted-foreground italic">
-                          This note is empty. Click "Edit" to add content.
-                        </span>
-                      )}
+                    <div className="h-full overflow-auto p-6">
+                      <MarkdownPreview content={selectedNote.content} />
                     </div>
                   )}
                 </div>
 
                 {/* AI Sidebar */}
-                {showAI && (
-                  <NotesAISidebar 
-                    note={selectedNote} 
-                    onClose={() => setShowAI(false)} 
-                  />
-                )}
+                {showAI && <NotesAISidebar note={selectedNote} onClose={() => setShowAI(false)} />}
               </div>
             </>
           ) : (
@@ -232,7 +289,7 @@ export default function Notes() {
                 <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <h2 className="text-xl font-semibold mb-2">Select a Note</h2>
                 <p className="text-muted-foreground mb-4">
-                  Choose a note from the list or create a new one to get started.
+                  Choose a note from the sidebar or create a new one to get started.
                 </p>
                 <Button variant="hero" onClick={handleCreateNote}>
                   <Plus className="w-4 h-4" />

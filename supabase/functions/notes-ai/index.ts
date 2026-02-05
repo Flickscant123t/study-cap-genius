@@ -51,8 +51,63 @@ serve(async (req) => {
         userPrompt = `Create 5 flashcards from the following note. Return them as a JSON array with 'front' and 'back' properties:\n\nTitle: ${noteTitle}\n\nContent:\n${noteContent}`;
         break;
 
+      case "generate-quiz":
+        systemPrompt += "You are an expert at creating educational quizzes. Create multiple choice questions that test understanding and application of concepts.";
+        userPrompt = `Create a 5-question multiple choice quiz based on the following note. Return as a JSON object with a 'questions' array. Each question should have: 'question' (string), 'options' (array of 4 strings), 'correctIndex' (0-3), 'explanation' (string explaining why the answer is correct).\n\nTitle: ${noteTitle}\n\nContent:\n${noteContent}`;
+        break;
+
       default:
         throw new Error("Invalid action");
+    }
+
+    // For quiz generation, don't stream - wait for full response and parse JSON
+    if (action === "generate-quiz") {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limits exceeded" }), {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "Payment required" }), {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        throw new Error("AI gateway error");
+      }
+
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || "";
+      
+      // Parse JSON from response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return new Response(JSON.stringify(parsed), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      return new Response(JSON.stringify({ questions: [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
