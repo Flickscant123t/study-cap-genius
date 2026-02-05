@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { goal, durationDays, weakPoints, type, task, answer } = await req.json();
+    const { goal, durationDays, weakPoints, type, task, answer, tasks } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
@@ -22,7 +22,6 @@ serve(async (req) => {
     let userPrompt = "";
 
     if (type === "generate_plan") {
-      // Generate a structured study plan
       systemPrompt = `You are an expert study coach. Create structured, actionable study plans.
 Always respond with valid JSON only, no markdown or explanations.`;
 
@@ -51,7 +50,6 @@ Return a JSON object with this exact structure:
 Create 3-5 tasks per day. Include variety: Active Recall, Practice Problems, Spaced Review, Deep Study sessions.`;
 
     } else if (type === "replan") {
-      // Dynamic re-planning when user is struggling
       systemPrompt = `You are an adaptive study coach. Adjust study plans based on student struggles.
 Always respond with valid JSON only.`;
 
@@ -67,7 +65,6 @@ Create an adjusted plan that:
 Return the same JSON structure as a regular plan.`;
 
     } else if (type === "tutor_question") {
-      // Generate a question for the tutor overlay
       systemPrompt = `You are an expert tutor. Generate challenging but fair questions.
 Respond with JSON only.`;
 
@@ -84,7 +81,6 @@ Return JSON:
 }`;
 
     } else if (type === "verify_answer") {
-      // Verify student's answer
       systemPrompt = `You are an expert tutor verifying student answers. Be fair but thorough.
 Respond with JSON only.`;
 
@@ -103,12 +99,11 @@ Return JSON:
 }`;
 
     } else if (type === "generate_flashcards") {
-      // Magic Paste: Generate flashcards from content
       systemPrompt = `You are an expert at creating effective flashcards for learning.
 Analyze content complexity and create appropriate number of cards.
 Respond with JSON only.`;
 
-      const contentLength = goal.length;
+      const contentLength = goal?.length || 0;
       const estimatedCards = Math.max(3, Math.min(25, Math.ceil(contentLength / 200)));
 
       userPrompt = `Create flashcards from this content:
@@ -127,6 +122,40 @@ Return JSON:
   ],
   "suggestedCount": ${estimatedCards}
 }`;
+
+    } else if (type === "optimize_schedule") {
+      systemPrompt = `You are an expert study scheduler. Create an optimized weekly study schedule.
+Respond with valid JSON only.`;
+
+      const today = new Date().toISOString().split("T")[0];
+      
+      userPrompt = `Create an optimized study schedule for the following tasks:
+
+${JSON.stringify(tasks, null, 2)}
+
+Today is ${today}. Create study blocks that:
+1. Prioritize tasks by urgency (exam dates) and priority level
+2. Space out subjects to avoid burnout
+3. Schedule high-priority items during typical peak focus hours (9 AM - 12 PM, 2 PM - 5 PM)
+4. Break large tasks into multiple sessions
+5. Include short breaks between sessions
+
+Return JSON:
+{
+  "blocks": [
+    {
+      "title": "Study block title",
+      "subject": "Subject name",
+      "start_time": "ISO date string",
+      "end_time": "ISO date string", 
+      "color": "#hex color based on priority (red=#ef4444, orange=#f97316, blue=#3b82f6)",
+      "task_id": "original task id if linked"
+    }
+  ],
+  "recommendations": ["Any study tips or warnings about the schedule"]
+}
+
+Create blocks for the next 7 days. Each block should be 30-90 minutes.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

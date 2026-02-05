@@ -67,11 +67,55 @@ export type Database = {
           },
         ]
       }
+      note_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "note_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string | null
           created_at: string
+          folder_path: string | null
           id: string
+          is_favorite: boolean | null
+          parent_folder_id: string | null
           subject: string | null
           title: string
           updated_at: string
@@ -80,7 +124,10 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          folder_path?: string | null
           id?: string
+          is_favorite?: boolean | null
+          parent_folder_id?: string | null
           subject?: string | null
           title: string
           updated_at?: string
@@ -89,13 +136,79 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          folder_path?: string | null
           id?: string
+          is_favorite?: boolean | null
+          parent_folder_id?: string | null
           subject?: string | null
           title?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      study_blocks: {
+        Row: {
+          color: string | null
+          completed: boolean | null
+          created_at: string
+          end_time: string
+          id: string
+          is_ai_generated: boolean | null
+          start_time: string
+          study_plan_id: string | null
+          subject: string | null
+          task_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          completed?: boolean | null
+          created_at?: string
+          end_time: string
+          id?: string
+          is_ai_generated?: boolean | null
+          start_time: string
+          study_plan_id?: string | null
+          subject?: string | null
+          task_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          completed?: boolean | null
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_ai_generated?: boolean | null
+          start_time?: string
+          study_plan_id?: string | null
+          subject?: string | null
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_blocks_study_plan_id_fkey"
+            columns: ["study_plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_blocks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       study_plans: {
         Row: {
@@ -222,9 +335,12 @@ export type Database = {
           created_at: string
           description: string | null
           due_date: string | null
+          estimated_hours: number | null
+          exam_date: string | null
           id: string
           note_id: string | null
           priority: string | null
+          subject: string | null
           title: string
           updated_at: string
           user_id: string
@@ -234,9 +350,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_hours?: number | null
+          exam_date?: string | null
           id?: string
           note_id?: string | null
           priority?: string | null
+          subject?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -246,9 +365,12 @@ export type Database = {
           created_at?: string
           description?: string | null
           due_date?: string | null
+          estimated_hours?: number | null
+          exam_date?: string | null
           id?: string
           note_id?: string | null
           priority?: string | null
+          subject?: string | null
           title?: string
           updated_at?: string
           user_id?: string
