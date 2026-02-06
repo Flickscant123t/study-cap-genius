@@ -17,6 +17,7 @@ import {
   User,
   PenTool,
   ArrowLeft,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -103,6 +104,7 @@ export default function WhiteboardPage() {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", active: false, isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: true, isFree: true },
+    { icon: Target, label: "Study Planner", path: "/study-planner", active: false, isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },
     { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false, isFree: false },
     { icon: CheckSquare, label: "Tasks", path: "/tasks", active: false, isFree: false },
