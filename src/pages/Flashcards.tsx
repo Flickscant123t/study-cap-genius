@@ -11,6 +11,7 @@ import { useWeakPoints } from "@/hooks/useWeakPoints";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { MagicPaste } from "@/components/flashcards/MagicPaste";
 import { StudyMode } from "@/components/flashcards/StudyMode";
+import { BrowseMode } from "@/components/flashcards/BrowseMode";
 import { PremiumModal } from "@/components/premium/PremiumModal";
 import { 
   Plus, 
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ViewMode = 'list' | 'study' | 'create' | 'magic-paste';
+type ViewMode = 'list' | 'study' | 'create' | 'magic-paste' | 'browse';
 
 export default function Flashcards() {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -74,6 +75,14 @@ export default function Flashcards() {
   };
 
   const masteryScore = getMasteryScore();
+
+  if (viewMode === 'browse') {
+    return (
+      <AppLayout title="Browse Flashcards">
+        <BrowseMode flashcards={cardList} onClose={() => setViewMode('list')} />
+      </AppLayout>
+    );
+  }
 
   if (viewMode === 'study') {
     if (!isPremium) {
@@ -188,6 +197,10 @@ export default function Flashcards() {
               <Wand2 className="w-4 h-4" />
               Magic Paste
               {!isPremium && <Lock className="w-3 h-3 ml-1" />}
+            </Button>
+            <Button variant="outline" onClick={() => setViewMode('browse')} disabled={cardList.length === 0}>
+              <BookOpen className="w-4 h-4" />
+              Browse
             </Button>
             <Button variant="outline" onClick={() => setViewMode('create')}>
               <Plus className="w-4 h-4" />
