@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { StudyBlock, useStudyBlocks } from "@/hooks/useStudyBlocks";
 import { useTasks } from "@/hooks/useTasks";
 import {
@@ -45,6 +46,8 @@ const PRIORITY_COLORS: Record<string, string> = {
 
 export function StudyCalendar({ onOptimize, optimizing }: StudyCalendarProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date());
+  const [pendingBlock, setPendingBlock] = useState<{ date: Date; hour: number } | null>(null);
+  const [blockTitle, setBlockTitle] = useState("");
   const { blocks, updateBlock, deleteBlock, createBlock } = useStudyBlocks();
   const { tasks } = useTasks();
   const { toast } = useToast();
@@ -110,12 +113,18 @@ export function StudyCalendar({ onOptimize, optimizing }: StudyCalendarProps) {
   };
 
   const handleAddBlock = async (date: Date, hour: number) => {
-    const startTime = new Date(date);
-    startTime.setHours(hour, 0, 0, 0);
+    setPendingBlock({ date, hour });
+    setBlockTitle("");
+  };
+
+  const confirmAddBlock = async () => {
+    if (!pendingBlock || !blockTitle.trim()) return;
+    const startTime = new Date(pendingBlock.date);
+    startTime.setHours(pendingBlock.hour, 0, 0, 0);
     const endTime = addHours(startTime, 1);
 
     await createBlock({
-      title: "New Study Block",
+      title: blockTitle.trim(),
       subject: null,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
@@ -125,6 +134,8 @@ export function StudyCalendar({ onOptimize, optimizing }: StudyCalendarProps) {
       is_ai_generated: false,
       completed: false,
     });
+    setPendingBlock(null);
+    setBlockTitle("");
   };
 
   const toggleBlockComplete = async (blockId: string, completed: boolean) => {
@@ -350,6 +361,34 @@ export function StudyCalendar({ onOptimize, optimizing }: StudyCalendarProps) {
           </div>
         </div>
       </DragDropContext>
+
+      {/* Inline title input for new block */}
+      {pendingBlock && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setPendingBlock(null)}>
+          <Card className="p-6 w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-semibold text-lg">New Study Block</h3>
+            <Input
+              autoFocus
+              placeholder="What do you want to study?"
+              value={blockTitle}
+              onChange={(e) => setBlockTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") confirmAddBlock();
+                if (e.key === "Escape") setPendingBlock(null);
+              }}
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="ghost" size="sm" onClick={() => setPendingBlock(null)}>
+                Cancel
+              </Button>
+              <Button variant="hero" size="sm" onClick={confirmAddBlock} disabled={!blockTitle.trim()}>
+                <Plus className="w-4 h-4 mr-1" />
+                Add
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </Card>
   );
 }
