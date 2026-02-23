@@ -31,7 +31,11 @@ export default function Auth() {
       const upgrade = searchParams.get('upgrade');
       if (upgrade === 'true') {
         // Redirect to Stripe checkout
+<<<<<<< HEAD
         window.location.href = 'https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03';
+=======
+        window.location.href = 'https://buy.stripe.com/test_28EaEXdh7dr11y87olcV200';
+>>>>>>> 74e2d00d5080b3e54ad51e0207e647232fabdf52
       } else {
         navigate('/dashboard');
       }

@@ -205,7 +205,11 @@ export default function WhiteboardPage() {
             <Button 
               variant="accent" 
               className="w-full mb-4"
+<<<<<<< HEAD
               onClick={() => window.location.href = `https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03?prefilled_email=${encodeURIComponent(user?.email || '')}`}
+=======
+              onClick={() => window.location.href = `https://buy.stripe.com/test_28EaEXdh7dr11y87olcV200?prefilled_email=${encodeURIComponent(user?.email || '')}`}
+>>>>>>> 74e2d00d5080b3e54ad51e0207e647232fabdf52
             >
               <Crown className="w-4 h-4" />
               Upgrade to Premium
