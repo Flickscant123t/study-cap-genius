@@ -1,0 +1,13 @@
+project_id = "pthlcyiiceyvpzkalwog"
+
+[functions.study-chat]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.notes-ai]
+verify_jwt = false
+
+[functions.study-plan]
+verify_jwt = false
