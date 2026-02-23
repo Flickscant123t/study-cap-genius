@@ -16,7 +16,7 @@ interface PremiumModalProps {
   featureDescription?: string;
 }
 
-const STRIPE_URL = "https://buy.stripe.com/test_28EaEXdh7dr11y87olcV200";
+const STRIPE_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
 
 export function PremiumModal({
   open,
