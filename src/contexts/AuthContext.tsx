@@ -44,7 +44,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      const isPremiumUser = data?.status === 'active' && data?.plan === 'premium';
+      let isPremiumUser = data?.status === 'active' && data?.plan === 'premium';
+
+      // Safety net: if webhook missed, try syncing directly from Stripe once.
+      if (!isPremiumUser) {
+        const { data: syncData, error: syncError } = await supabase.functions.invoke(
+          'stripe-sync-subscription',
+          { body: {} }
+        );
+
+        if (syncError) {
+          console.error('Error syncing premium status from Stripe:', syncError);
+        } else {
+          isPremiumUser = Boolean((syncData as { premium?: boolean } | null)?.premium);
+        }
+      }
+
       setIsPremium(isPremiumUser);
       
       // Also update localStorage for quick access

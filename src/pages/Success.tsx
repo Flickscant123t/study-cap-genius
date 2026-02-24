@@ -15,6 +15,8 @@ export default function Success() {
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
+    const maxRetries = sessionId ? 12 : 8;
+    let retryCount = 0;
     
     const verifyAndActivate = async () => {
       if (!user) {
@@ -43,8 +45,9 @@ export default function Success() {
           
           // Launch confetti celebration!
           launchConfetti();
-        } else if (sessionId) {
-          // If webhook hasn't processed yet, wait and retry
+        } else if (retryCount < maxRetries) {
+          // If webhook hasn't processed yet, wait and retry.
+          retryCount += 1;
           setTimeout(verifyAndActivate, 2000);
           return;
         }

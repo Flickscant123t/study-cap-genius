@@ -21,6 +21,7 @@ import {
   Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getStripeCheckoutUrl } from "@/lib/stripe";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -37,6 +38,11 @@ export function AppLayout({ children, title }: AppLayoutProps) {
     await signOut();
     navigate('/');
   };
+
+  const stripeCheckoutUrl = getStripeCheckoutUrl({
+    email: user?.email,
+    userId: user?.id,
+  });
 
   // Settings and Tasks are accessible to free users (with limits)
   // Notes, Flashcards, Study Planner are premium-only but show locked view
@@ -145,7 +151,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             <Button 
               variant="accent" 
               className="w-full mb-4"
-              onClick={() => window.location.href = `https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03?prefilled_email=${encodeURIComponent(user?.email || '')}`}
+              onClick={() => (window.location.href = stripeCheckoutUrl)}
             >
               <Crown className="w-4 h-4" />
               Upgrade to Premium

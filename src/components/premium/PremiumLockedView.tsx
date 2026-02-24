@@ -2,6 +2,7 @@ import { Lock, Crown, Sparkles, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { getStripeCheckoutUrl } from "@/lib/stripe";
 
 interface PremiumLockedViewProps {
   title?: string;
@@ -10,8 +11,6 @@ interface PremiumLockedViewProps {
   showBenefits?: boolean;
   compact?: boolean;
 }
-
-const STRIPE_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
 
 const benefits = [
   "Unlimited AI Study Sessions",
@@ -31,9 +30,10 @@ export function PremiumLockedView({
 }: PremiumLockedViewProps) {
   const { user } = useAuth();
 
-  const stripeUrl = user?.email
-    ? `${STRIPE_URL}?prefilled_email=${encodeURIComponent(user.email)}`
-    : STRIPE_URL;
+  const stripeUrl = getStripeCheckoutUrl({
+    email: user?.email,
+    userId: user?.id,
+  });
 
   if (compact) {
     return (

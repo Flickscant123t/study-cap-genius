@@ -2,14 +2,13 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Crown } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getStripeCheckoutUrl } from "@/lib/stripe";
 
 interface LimitReachedCardProps {
   currentCount: number;
   maxCount: number;
   itemName: string;
 }
-
-const STRIPE_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
 
 export function LimitReachedCard({
   currentCount,
@@ -18,9 +17,10 @@ export function LimitReachedCard({
 }: LimitReachedCardProps) {
   const { user } = useAuth();
 
-  const stripeUrl = user?.email
-    ? `${STRIPE_URL}?prefilled_email=${encodeURIComponent(user.email)}`
-    : STRIPE_URL;
+  const stripeUrl = getStripeCheckoutUrl({
+    email: user?.email,
+    userId: user?.id,
+  });
 
   return (
     <Card className="p-6 border-orange-500/30 bg-orange-500/5">

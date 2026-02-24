@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Crown, Sparkles, CheckCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getStripeCheckoutUrl } from "@/lib/stripe";
 
 interface PremiumModalProps {
   open: boolean;
@@ -15,8 +16,6 @@ interface PremiumModalProps {
   featureName: string;
   featureDescription?: string;
 }
-
-const STRIPE_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
 
 export function PremiumModal({
   open,
@@ -26,9 +25,10 @@ export function PremiumModal({
 }: PremiumModalProps) {
   const { user } = useAuth();
 
-  const stripeUrl = user?.email
-    ? `${STRIPE_URL}?prefilled_email=${encodeURIComponent(user.email)}`
-    : STRIPE_URL;
+  const stripeUrl = getStripeCheckoutUrl({
+    email: user?.email,
+    userId: user?.id,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

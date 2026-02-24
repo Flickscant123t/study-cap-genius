@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { GraduationCap, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getStripeCheckoutUrl } from "@/lib/stripe";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -34,7 +35,10 @@ export default function Auth() {
       const upgrade = searchParams.get('upgrade');
       if (upgrade === 'true') {
         // Redirect to Stripe checkout
-        window.location.href = 'https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03';
+        window.location.href = getStripeCheckoutUrl({
+          email: user.email,
+          userId: user.id,
+        });
       } else {
         navigate('/dashboard');
       }

@@ -6,6 +6,75 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
 };
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const normalizeEmail = (email: string | null | undefined) =>
+  email?.trim().toLowerCase() ?? "";
+
+const findUserByEmail = async (supabase: any, email: string) => {
+  const normalizedTargetEmail = normalizeEmail(email);
+  if (!normalizedTargetEmail) {
+    return null;
+  }
+
+  const perPage = 200;
+  let page = 1;
+
+  while (true) {
+    const { data: userData, error: userError } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (userError) {
+      throw userError;
+    }
+
+    const matchedUser = userData.users.find((candidate: any) =>
+      normalizeEmail(candidate.email) === normalizedTargetEmail
+    );
+
+    if (matchedUser) {
+      return matchedUser;
+    }
+
+    if (userData.users.length < perPage) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return null;
+};
+
+const resolveCheckoutUserId = async (supabase: any, session: any) => {
+  const clientReferenceId =
+    typeof session.client_reference_id === "string" ? session.client_reference_id.trim() : "";
+
+  if (clientReferenceId && UUID_REGEX.test(clientReferenceId)) {
+    const { data: userByIdData, error: userByIdError } = await supabase.auth.admin.getUserById(
+      clientReferenceId,
+    );
+
+    if (!userByIdError && userByIdData?.user) {
+      return userByIdData.user.id;
+    }
+
+    if (userByIdError) {
+      console.warn("Unable to resolve client_reference_id:", userByIdError.message);
+    }
+  }
+
+  const customerEmail = session.customer_email || session.customer_details?.email;
+  if (!customerEmail) {
+    return null;
+  }
+
+  const userByEmail = await findUserByEmail(supabase, customerEmail);
+  return userByEmail?.id ?? null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -31,49 +100,42 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
-        const customerEmail = session.customer_email || session.customer_details?.email;
         const customerId = session.customer;
         const subscriptionId = session.subscription;
+        const customerEmail = session.customer_email || session.customer_details?.email;
 
         console.log("Checkout completed for:", customerEmail);
 
-        if (customerEmail) {
-          // Find user by email
-          const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
-          
-          if (userError) {
-            console.error("Error fetching users:", userError);
-            throw userError;
+        const userId = await resolveCheckoutUserId(supabase, session);
+
+        if (userId) {
+          console.log("Found user:", userId);
+
+          // Upsert subscription record
+          const { error: subError } = await supabase
+            .from("subscriptions")
+            .upsert({
+              user_id: userId,
+              stripe_customer_id: customerId,
+              stripe_subscription_id: subscriptionId,
+              status: "active",
+              plan: "premium",
+              current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            }, {
+              onConflict: "user_id"
+            });
+
+          if (subError) {
+            console.error("Error upserting subscription:", subError);
+            throw subError;
           }
 
-          const user = userData.users.find(u => u.email === customerEmail);
-          
-          if (user) {
-            console.log("Found user:", user.id);
-            
-            // Upsert subscription record
-            const { error: subError } = await supabase
-              .from("subscriptions")
-              .upsert({
-                user_id: user.id,
-                stripe_customer_id: customerId,
-                stripe_subscription_id: subscriptionId,
-                status: "active",
-                plan: "premium",
-                current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-              }, {
-                onConflict: "user_id"
-              });
-
-            if (subError) {
-              console.error("Error upserting subscription:", subError);
-              throw subError;
-            }
-
-            console.log("Subscription activated for user:", user.id);
-          } else {
-            console.log("No user found with email:", customerEmail);
-          }
+          console.log("Subscription activated for user:", userId);
+        } else {
+          console.log("No matching user found for checkout session", {
+            customerEmail,
+            clientReferenceId: session.client_reference_id,
+          });
         }
         break;
       }
