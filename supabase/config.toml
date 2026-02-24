@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.study-plan]
 verify_jwt = false
+
+[functions.stripe-renewal]
+verify_jwt = true

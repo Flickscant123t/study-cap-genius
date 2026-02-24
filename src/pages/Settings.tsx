@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePreferences, StudyPersona, Theme } from "@/hooks/usePreferences";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { PremiumModal } from "@/components/premium/PremiumModal";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Loader2,
   User,
@@ -51,8 +52,13 @@ export default function Settings() {
   const navigate = useNavigate();
   const { user, isPremium, loading: authLoading } = useAuth();
   const { preferences, loading, updatePreferences } = usePreferences();
+  const { toast } = useToast();
   const [auraTheme, setAuraTheme] = useState<AuraTheme>('default');
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [autoRenewalCanceled, setAutoRenewalCanceled] = useState(false);
+  const [renewalPeriodEnd, setRenewalPeriodEnd] = useState<string | null>(null);
+  const [loadingRenewalStatus, setLoadingRenewalStatus] = useState(false);
+  const [cancelingRenewal, setCancelingRenewal] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -66,6 +72,36 @@ export default function Settings() {
       applyAuraTheme(stored);
     }
   }, [isPremium]);
+
+  useEffect(() => {
+    const fetchRenewalStatus = async () => {
+      if (!user || !isPremium) {
+        setAutoRenewalCanceled(false);
+        setRenewalPeriodEnd(null);
+        return;
+      }
+
+      setLoadingRenewalStatus(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("stripe-renewal", {
+          body: { action: "status" },
+        });
+
+        if (error) {
+          console.error("Failed to fetch renewal status:", error);
+          return;
+        }
+
+        const payload = data as { cancelAtPeriodEnd?: boolean; currentPeriodEnd?: string | null } | null;
+        setAutoRenewalCanceled(Boolean(payload?.cancelAtPeriodEnd));
+        setRenewalPeriodEnd(payload?.currentPeriodEnd ?? null);
+      } finally {
+        setLoadingRenewalStatus(false);
+      }
+    };
+
+    fetchRenewalStatus();
+  }, [user?.id, isPremium]);
 
   const applyAuraTheme = (theme: AuraTheme) => {
     const root = document.documentElement;
@@ -105,6 +141,41 @@ export default function Settings() {
     await updatePreferences?.({ theme });
   };
 
+  const handleCancelAutoRenewal = async () => {
+    setCancelingRenewal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("stripe-renewal", {
+        body: { action: "cancel" },
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Unable to cancel auto-renewal",
+          description: error.message,
+        });
+        return;
+      }
+
+      const payload = data as { cancelAtPeriodEnd?: boolean; currentPeriodEnd?: string | null } | null;
+      setAutoRenewalCanceled(Boolean(payload?.cancelAtPeriodEnd));
+      setRenewalPeriodEnd(payload?.currentPeriodEnd ?? null);
+
+      const endDateLabel = payload?.currentPeriodEnd
+        ? new Date(payload.currentPeriodEnd).toLocaleDateString()
+        : null;
+
+      toast({
+        title: "Auto-renewal canceled",
+        description: endDateLabel
+          ? `Premium stays active until ${endDateLabel}.`
+          : "Premium stays active until the end of your current billing period.",
+      });
+    } finally {
+      setCancelingRenewal(false);
+    }
+  };
+
   if (loading || authLoading) {
     return (
       <AppLayout title="Settings">
@@ -114,6 +185,10 @@ export default function Settings() {
       </AppLayout>
     );
   }
+
+  const renewalEndDateLabel = renewalPeriodEnd
+    ? new Date(renewalPeriodEnd).toLocaleDateString()
+    : null;
 
   return (
     <AppLayout title="Settings">
@@ -138,10 +213,39 @@ export default function Settings() {
             <div>
               <p className="font-semibold text-lg">{user?.email}</p>
               {isPremium ? (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
-                  <Crown className="w-3 h-3" />
-                  Premium Member
-                </span>
+                <>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
+                    <Crown className="w-3 h-3" />
+                    Premium Member
+                  </span>
+                  <div className="mt-3 space-y-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={autoRenewalCanceled ? "secondary" : "destructive"}
+                      onClick={handleCancelAutoRenewal}
+                      disabled={loadingRenewalStatus || cancelingRenewal || autoRenewalCanceled}
+                    >
+                      {cancelingRenewal ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Canceling...
+                        </>
+                      ) : autoRenewalCanceled ? (
+                        "Auto-renewal canceled"
+                      ) : (
+                        "Cancel auto-renewal"
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      {autoRenewalCanceled
+                        ? renewalEndDateLabel
+                          ? `You keep premium access until ${renewalEndDateLabel}.`
+                          : "You keep premium access until the end of this billing period."
+                        : "Cancel anytime and keep premium until your current billing period ends."}
+                    </p>
+                  </div>
+                </>
               ) : (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-semibold">
                   Free Plan

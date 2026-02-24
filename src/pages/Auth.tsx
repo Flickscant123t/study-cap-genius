@@ -62,6 +62,9 @@ export default function Auth() {
   const isEmailNotConfirmedError = (message: string) =>
     /email not confirmed|not confirmed/i.test(message);
 
+  const isMissingGoogleProviderConfigError = (message: string) =>
+    /missing oauth secret|unsupported provider/i.test(message);
+
   const handleResendVerification = async () => {
     if (!pendingVerificationEmail) return;
 
@@ -104,7 +107,9 @@ export default function Auth() {
         toast({
           variant: "destructive",
           title: "Google sign in failed",
-          description: error.message,
+          description: isMissingGoogleProviderConfigError(error.message)
+            ? "Google is not fully configured for this Supabase project yet. Please complete the Google provider setup in Supabase Authentication."
+            : error.message,
         });
       }
     } finally {
