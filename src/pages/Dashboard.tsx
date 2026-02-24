@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense, lazy } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,7 +26,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import ReactMarkdown from "react-markdown";
+
+const ReactMarkdown = lazy(() => import("react-markdown"));
 
 type Message = {
   role: "user" | "assistant";
@@ -357,7 +358,9 @@ export default function Dashboard() {
                   >
                     {message.role === "assistant" ? (
                       <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <ReactMarkdown>{message.content || "..."}</ReactMarkdown>
+                        <Suspense fallback={<p>{message.content || "..."}</p>}>
+                          <ReactMarkdown>{message.content || "..."}</ReactMarkdown>
+                        </Suspense>
                       </div>
                     ) : (
                       <p>{message.content}</p>

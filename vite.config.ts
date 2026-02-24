@@ -18,4 +18,18 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom", "@tanstack/react-query"],
+          "supabase-vendor": ["@supabase/supabase-js"],
+          "notes-vendor": ["react-markdown", "remark-gfm", "remark-math", "rehype-katex", "katex"],
+          "whiteboard-vendor": ["fabric"],
+          "charts-vendor": ["recharts"],
+          "dnd-vendor": ["@hello-pangea/dnd"],
+        },
+      },
+    },
+  },
 }));
