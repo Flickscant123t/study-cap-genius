@@ -6,8 +6,9 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: Error | null; needsEmailVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isPremium: boolean;
   dailyUsage: number;
@@ -109,15 +110,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [checkPremiumStatus]);
 
   const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
+    const redirectUrl = `${window.location.origin}/auth`;
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
-    return { error };
+    const needsEmailVerification = !error && !data.session;
+    return { error, needsEmailVerification };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -125,6 +127,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
     });
+    return { error };
+  };
+
+  const resendVerificationEmail = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/auth`;
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
+    });
+
     return { error };
   };
 
@@ -155,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       signUp,
       signIn,
+      resendVerificationEmail,
       signOut,
       isPremium,
       dailyUsage,

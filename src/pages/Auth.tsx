@@ -19,11 +19,13 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp, resendVerificationEmail, user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,6 +58,34 @@ export default function Auth() {
     }
   };
 
+  const isEmailNotConfirmedError = (message: string) =>
+    /email not confirmed|not confirmed/i.test(message);
+
+  const handleResendVerification = async () => {
+    if (!pendingVerificationEmail) return;
+
+    setResendingVerification(true);
+    try {
+      const { error } = await resendVerificationEmail(pendingVerificationEmail);
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Couldn't resend email",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Verification email sent",
+        description: `A new verification link was sent to ${pendingVerificationEmail}.`,
+      });
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -67,21 +97,31 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
-          toast({
-            variant: "destructive",
-            title: "Sign in failed",
-            description: error.message === "Invalid login credentials" 
-              ? "Invalid email or password. Please try again."
-              : error.message,
-          });
+          if (isEmailNotConfirmedError(error.message)) {
+            setPendingVerificationEmail(email);
+            toast({
+              variant: "destructive",
+              title: "Email not verified",
+              description: "Please click the verification link in your email before signing in.",
+            });
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Sign in failed",
+              description: error.message === "Invalid login credentials" 
+                ? "Invalid email or password. Please try again."
+                : error.message,
+            });
+          }
         } else {
+          setPendingVerificationEmail("");
           toast({
             title: "Welcome back!",
             description: "You've successfully signed in.",
           });
         }
       } else {
-        const { error } = await signUp(email, password);
+        const { error, needsEmailVerification } = await signUp(email, password);
         if (error) {
           if (error.message.includes("already registered")) {
             toast({
@@ -97,10 +137,21 @@ export default function Auth() {
             });
           }
         } else {
-          toast({
-            title: "Account created!",
-            description: "You've successfully signed up. Welcome to StudyCap!",
-          });
+          if (needsEmailVerification) {
+            setPendingVerificationEmail(email);
+            setPassword("");
+            setIsLogin(true);
+            toast({
+              title: "Check your email",
+              description: `We sent a verification link to ${email}. Verify your email, then sign in.`,
+            });
+          } else {
+            setPendingVerificationEmail("");
+            toast({
+              title: "Account created!",
+              description: "You've successfully signed up. Welcome to StudyCap!",
+            });
+          }
         }
       }
     } finally {
@@ -181,6 +232,28 @@ export default function Auth() {
             </Button>
           </form>
 
+          {isLogin && pendingVerificationEmail && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full"
+                onClick={handleResendVerification}
+                disabled={loading || resendingVerification}
+              >
+                {resendingVerification ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Sending verification email...
+                  </>
+                ) : (
+                  "Resend verification email"
+                )}
+              </Button>
+            </div>
+          )}
+
           <div className="mt-6 text-center">
             <p className="text-muted-foreground">
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
@@ -189,6 +262,9 @@ export default function Auth() {
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setErrors({});
+                  if (!isLogin) {
+                    setPendingVerificationEmail("");
+                  }
                 }}
                 className="text-primary font-semibold hover:underline"
               >
