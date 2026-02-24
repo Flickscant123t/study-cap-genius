@@ -64,6 +64,12 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
 
+## Stripe webhooks
+
+- Stripe sends events to `https://studycapgenius.vercel.app/api/stripe-webhook`, which proxies the payload to the Supabase function `stripe-webhook`.
+- Deploy the Supabase functions (`stripe-webhook`, `stripe-renewal`, `stripe-sync-subscription`) via `supabase functions deploy <name> --project-ref pthlcyiiceyvpzkalwog` and make sure `STRIPE_SECRET_KEY` is set in Supabase secrets.
+- After each deploy hit “Resend” on the latest `checkout.session.completed` webhook from Stripe to re-sync any outstanding payments.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
