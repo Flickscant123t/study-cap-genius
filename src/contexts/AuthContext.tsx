@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string) => Promise<{ error: Error | null; needsEmailVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: (redirectTo?: string) => Promise<{ error: Error | null }>;
   resendVerificationEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   isPremium: boolean;
@@ -130,6 +131,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async (redirectTo?: string) => {
+    const callbackUrl = redirectTo ?? `${window.location.origin}/auth`;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: callbackUrl,
+      },
+    });
+
+    return { error };
+  };
+
   const resendVerificationEmail = async (email: string) => {
     const redirectUrl = `${window.location.origin}/auth`;
     const { error } = await supabase.auth.resend({
@@ -170,6 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       signUp,
       signIn,
+      signInWithGoogle,
       resendVerificationEmail,
       signOut,
       isPremium,

@@ -19,13 +19,14 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [resendingVerification, setResendingVerification] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signUp, resendVerificationEmail, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, resendVerificationEmail, user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -83,6 +84,31 @@ export default function Auth() {
       });
     } finally {
       setResendingVerification(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setGoogleLoading(true);
+
+    try {
+      const upgrade = searchParams.get('upgrade');
+      const redirectUrl = new URL(`${window.location.origin}/auth`);
+
+      if (upgrade === 'true') {
+        redirectUrl.searchParams.set('upgrade', 'true');
+      }
+
+      const { error } = await signInWithGoogle(redirectUrl.toString());
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Google sign in failed",
+          description: error.message,
+        });
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -183,6 +209,38 @@ export default function Auth() {
             </p>
           </div>
 
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="w-full"
+            onClick={handleGoogleAuth}
+            disabled={loading || googleLoading}
+          >
+            {googleLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Redirecting to Google...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.2-1.5 3.6-5.5 3.6-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 3.9 1.5l2.7-2.7C16.9 2.3 14.7 1.5 12 1.5 6.8 1.5 2.6 6 2.6 11.5S6.8 21.5 12 21.5c6.9 0 9.5-4.9 9.5-7.5 0-.5 0-.8-.1-1.2H12z" />
+                </svg>
+                Continue with Google
+              </>
+            )}
+          </Button>
+
+          <div className="relative my-5">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or continue with email</span>
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -220,7 +278,7 @@ export default function Auth() {
               )}
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading}>
+            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={loading || googleLoading}>
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -240,7 +298,7 @@ export default function Auth() {
                 size="lg"
                 className="w-full"
                 onClick={handleResendVerification}
-                disabled={loading || resendingVerification}
+                disabled={loading || googleLoading || resendingVerification}
               >
                 {resendingVerification ? (
                   <>
