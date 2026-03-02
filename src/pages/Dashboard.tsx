@@ -310,7 +310,7 @@ export default function Dashboard() {
         <div className="flex-1 flex flex-col max-w-4xl w-full mx-auto p-4">
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 animate-float">
+              <div className="w-20 h-20 rounded-3xl gradient-primary flex items-center justify-center mb-6 animate-float shadow-soft">
                 <Brain className="w-10 h-10 text-primary-foreground" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Hi, I'm NovaAI!</h2>
@@ -327,7 +327,7 @@ export default function Dashboard() {
                   <button
                     key={i}
                     onClick={() => setInput(item.example)}
-                    className="p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-soft transition-all text-left group"
+                    className="p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-soft transition-all duration-300 text-left group hover:-translate-y-1"
                   >
                     <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center mb-3 group-hover:gradient-primary transition-all">
                       <item.icon className="w-5 h-5 text-secondary-foreground group-hover:text-primary-foreground" />

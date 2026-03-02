@@ -189,8 +189,11 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen gradient-hero flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen gradient-hero flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Decorative glow */}
+      <div className="hero-glow -top-40 left-1/2 -translate-x-1/2 animate-glow-pulse" />
+      
+      <div className="w-full max-w-md relative z-10">
         <button 
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -199,7 +202,7 @@ export default function Auth() {
           Back to home
         </button>
 
-        <Card className="p-8 shadow-card">
+        <Card className="p-8 shadow-card glass-card animate-slide-up-fade">
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4">
               <GraduationCap className="w-7 h-7 text-primary-foreground" />

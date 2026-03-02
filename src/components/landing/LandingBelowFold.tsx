@@ -28,7 +28,7 @@ export default function LandingBelowFold() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {/* Free Plan */}
-            <Card className="p-8 shadow-card hover:shadow-hover transition-shadow">
+            <Card className="p-8 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
               <div className="mb-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-sm font-medium mb-4">
                   <Zap className="w-4 h-4" />
@@ -69,7 +69,7 @@ export default function LandingBelowFold() {
             </Card>
 
             {/* Premium Plan */}
-            <Card className="p-8 shadow-card hover:shadow-hover transition-shadow relative overflow-hidden border-2 border-primary">
+            <Card className="p-8 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1 relative overflow-hidden border-2 border-primary">
               <div className="absolute top-0 right-0 gradient-accent text-accent-foreground px-4 py-1 text-sm font-semibold rounded-bl-lg">
                 POPULAR
               </div>
@@ -173,7 +173,7 @@ export default function LandingBelowFold() {
               { name: "Marcus T.", major: "Engineering Student", quote: "The explanations are so clear! It's like having a tutor available 24/7.", stars: 5 },
               { name: "Emily R.", major: "Pre-Med Student", quote: "Premium is worth every penny. The advanced reasoning helped me ace my MCAT prep.", stars: 5 },
             ].map((testimonial, i) => (
-              <Card key={i} className="p-6 shadow-card">
+              <Card key={i} className="p-6 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: testimonial.stars }).map((_, j) => (
                     <Star key={j} className="w-5 h-5 fill-accent text-accent" />

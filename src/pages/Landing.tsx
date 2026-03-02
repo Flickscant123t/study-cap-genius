@@ -46,25 +46,29 @@ export default function Landing() {
         </div>
       </nav>
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto text-center max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary mb-8 animate-fade-in">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Decorative glow orbs */}
+        <div className="hero-glow top-20 -left-40 animate-glow-pulse" />
+        <div className="hero-glow top-40 -right-40 animate-glow-pulse" style={{ animationDelay: "2s" }} />
+        
+        <div className="container mx-auto text-center max-w-4xl relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 animate-slide-up-fade">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-secondary-foreground">AI-Powered Learning Assistant</span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 animate-fade-in-up">
+          <h1 className="text-5xl md:text-7xl font-extrabold mb-6 animate-slide-up-fade tracking-tight" style={{ animationDelay: "0.1s" }}>
             Study Smarter With{" "}
             <span className="text-gradient">StudyCap</span>
           </h1>
           <p
-            className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-fade-in-up"
-            style={{ animationDelay: "0.1s" }}
+            className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-2xl mx-auto animate-slide-up-fade leading-relaxed"
+            style={{ animationDelay: "0.2s" }}
           >
             Your AI-powered study partner that helps you learn faster, understand deeper, and achieve more.
           </p>
           <div
-            className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up"
-            style={{ animationDelay: "0.2s" }}
+            className="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up-fade"
+            style={{ animationDelay: "0.3s" }}
           >
             <Button size="xl" variant="hero" onClick={() => navigate("/auth")} className="group">
               Start Free
@@ -75,7 +79,7 @@ export default function Landing() {
               Upgrade to Premium
             </Button>
           </div>
-          <p className="mt-6 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <p className="mt-6 text-sm text-muted-foreground animate-slide-up-fade" style={{ animationDelay: "0.4s" }}>
             * 15 free questions per day - No credit card required
           </p>
         </div>
