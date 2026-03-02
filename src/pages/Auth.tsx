@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { GraduationCap, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { lovable } from "@/integrations/lovable/index";
 import { z } from "zod";
 
 const authSchema = z.object({
@@ -98,22 +99,15 @@ export default function Auth() {
     setGoogleLoading(true);
 
     try {
-      const upgrade = searchParams.get('upgrade');
-      const redirectUrl = new URL(`${window.location.origin}/auth`);
-
-      if (upgrade === 'true') {
-        redirectUrl.searchParams.set('upgrade', 'true');
-      }
-
-      const { error } = await signInWithGoogle(redirectUrl.toString());
+      const { error } = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
 
       if (error) {
         toast({
           variant: "destructive",
           title: "Google sign in failed",
-          description: isMissingGoogleProviderConfigError(error.message)
-            ? "Google is not fully configured for this Supabase project yet. Please complete the Google provider setup in Supabase Authentication."
-            : error.message,
+          description: error.message,
         });
       }
     } finally {
