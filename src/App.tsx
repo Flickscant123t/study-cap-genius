@@ -65,6 +65,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/success" element={<Success />} />
               <Route path="/study-planner" element={<StudyPlanner />} />
+              <Route path="/~oauth/*" element={null} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
