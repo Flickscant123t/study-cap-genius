@@ -18,10 +18,10 @@ const loadUmamiScript = () => {
 };
 
 if (import.meta.env.PROD) {
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(loadUmamiScript, { timeout: 2000 });
+  if (typeof (window as any).requestIdleCallback === "function") {
+    (window as any).requestIdleCallback(loadUmamiScript, { timeout: 2000 });
   } else {
-    window.setTimeout(loadUmamiScript, 1200);
+    setTimeout(loadUmamiScript, 1200);
   }
 }
 
