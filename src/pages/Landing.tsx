@@ -10,17 +10,17 @@ export default function Landing() {
     let idleCallbackId: number | undefined;
     let timeoutId: number | undefined;
     const revealBelowFold = () => setShowBelowFold(true);
-    if ("requestIdleCallback" in window) {
-      idleCallbackId = window.requestIdleCallback(revealBelowFold, { timeout: 1200 });
+    if (typeof (window as any).requestIdleCallback === "function") {
+      idleCallbackId = (window as any).requestIdleCallback(revealBelowFold, { timeout: 1200 });
     } else {
-      timeoutId = window.setTimeout(revealBelowFold, 300);
+      timeoutId = setTimeout(revealBelowFold, 300) as unknown as number;
     }
     return () => {
-      if (idleCallbackId !== undefined && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleCallbackId);
+      if (idleCallbackId !== undefined && typeof (window as any).cancelIdleCallback === "function") {
+        (window as any).cancelIdleCallback(idleCallbackId);
       }
       if (timeoutId !== undefined) {
-        window.clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
       }
     };
   }, []);

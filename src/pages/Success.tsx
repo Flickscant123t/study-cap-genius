@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,18 +7,19 @@ import { Crown, Sparkles, Rocket, Zap, Star } from "lucide-react";
 import confetti from "canvas-confetti";
 
 export default function Success() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, refreshPremiumStatus } = useAuth();
   const [isVerifying, setIsVerifying] = useState(true);
   const [verified, setVerified] = useState(false);
 
   useEffect(() => {
-    const sessionId = searchParams.get("session_id");
-    const maxRetries = sessionId ? 12 : 8;
+    let cancelled = false;
     let retryCount = 0;
-    
+    const maxRetries = 15;
+
     const verifyAndActivate = async () => {
+      if (cancelled) return;
+
       if (!user) {
         // Wait for auth to load
         setTimeout(verifyAndActivate, 500);
@@ -26,8 +27,16 @@ export default function Success() {
       }
 
       try {
-        // Verify session with Stripe (the webhook should have already processed it)
-        // We'll check the subscription status in the database
+        // First try to sync directly from Stripe (in case webhook hasn't fired yet)
+        if (retryCount === 0 || retryCount === 3 || retryCount === 7) {
+          try {
+            await supabase.functions.invoke("stripe-sync-subscription", { body: {} });
+          } catch (e) {
+            console.warn("Sync attempt failed:", e);
+          }
+        }
+
+        // Check subscription status in database
         const { data: subscription } = await supabase
           .from("subscriptions")
           .select("status, plan")
@@ -35,68 +44,56 @@ export default function Success() {
           .maybeSingle();
 
         if (subscription?.status === "active" && subscription?.plan === "premium") {
+          if (cancelled) return;
           setVerified(true);
-          
-          // Also cache in localStorage for quick access
+          setIsVerifying(false);
+
           localStorage.setItem("studycap_premium", "true");
-          
-          // Refresh context
           await refreshPremiumStatus();
-          
-          // Launch confetti celebration!
+
+          // Launch confetti celebration
           launchConfetti();
-        } else if (retryCount < maxRetries) {
-          // If webhook hasn't processed yet, wait and retry.
+
+          // Auto-redirect to dashboard after 3 seconds
+          setTimeout(() => {
+            if (!cancelled) navigate("/dashboard");
+          }, 3000);
+          return;
+        }
+
+        if (retryCount < maxRetries) {
           retryCount += 1;
           setTimeout(verifyAndActivate, 2000);
           return;
         }
+
+        // Max retries exhausted
+        if (!cancelled) {
+          setIsVerifying(false);
+        }
       } catch (error) {
         console.error("Error verifying premium status:", error);
-      } finally {
-        setIsVerifying(false);
+        if (!cancelled) setIsVerifying(false);
       }
     };
 
     verifyAndActivate();
-  }, [searchParams, user, refreshPremiumStatus]);
+    return () => { cancelled = true; };
+  }, [user, refreshPremiumStatus, navigate]);
 
   const launchConfetti = () => {
-    // Initial burst
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
       colors: ["#6366f1", "#f59e0b", "#8b5cf6", "#ec4899"],
     });
-
-    // Second wave
     setTimeout(() => {
-      confetti({
-        particleCount: 50,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ["#6366f1", "#f59e0b"],
-      });
-      confetti({
-        particleCount: 50,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ["#8b5cf6", "#ec4899"],
-      });
+      confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors: ["#6366f1", "#f59e0b"] });
+      confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors: ["#8b5cf6", "#ec4899"] });
     }, 200);
-
-    // Third wave with stars
     setTimeout(() => {
-      confetti({
-        particleCount: 30,
-        spread: 100,
-        origin: { y: 0.4 },
-        shapes: ["star"],
-        colors: ["#fbbf24", "#f59e0b"],
-      });
+      confetti({ particleCount: 30, spread: 100, origin: { y: 0.4 }, shapes: ["star"], colors: ["#fbbf24", "#f59e0b"] });
     }, 400);
   };
 
@@ -123,12 +120,8 @@ export default function Success() {
           Your payment is being processed. If you've already paid, please wait a moment and refresh this page.
         </p>
         <div className="flex gap-4">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Refresh
-          </Button>
-          <Button variant="hero" onClick={() => navigate("/dashboard")}>
-            Go to Dashboard
-          </Button>
+          <Button variant="outline" onClick={() => window.location.reload()}>Refresh</Button>
+          <Button variant="hero" onClick={() => navigate("/dashboard")}>Go to Dashboard</Button>
         </div>
       </div>
     );
@@ -136,7 +129,6 @@ export default function Success() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 p-4">
-      {/* Floating decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-20 h-20 rounded-full gradient-primary opacity-20 blur-2xl animate-float" />
         <div className="absolute bottom-32 right-16 w-32 h-32 rounded-full gradient-accent opacity-20 blur-3xl animate-float" style={{ animationDelay: "1s" }} />
@@ -144,31 +136,26 @@ export default function Success() {
       </div>
 
       <div className="relative z-10 text-center max-w-2xl">
-        {/* Icon */}
         <div className="relative inline-block mb-8">
           <div className="w-32 h-32 rounded-3xl gradient-primary flex items-center justify-center shadow-hover animate-bounce-slow">
             <Crown className="w-16 h-16 text-primary-foreground" />
           </div>
-          {/* Sparkles around icon */}
           <Sparkles className="absolute -top-2 -right-2 w-8 h-8 text-accent animate-pulse" />
           <Star className="absolute -bottom-1 -left-3 w-6 h-6 text-yellow-400 animate-pulse" style={{ animationDelay: "0.3s" }} />
           <Zap className="absolute top-1/2 -right-6 w-5 h-5 text-purple-500 animate-pulse" style={{ animationDelay: "0.6s" }} />
         </div>
 
-        {/* Title */}
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 leading-tight">
           <span className="text-gradient">Genius Status</span>
           <br />
           <span className="text-foreground">Activated! 🚀</span>
         </h1>
 
-        {/* Subtitle */}
         <p className="text-xl text-muted-foreground mb-8 max-w-lg mx-auto">
-          Welcome to the elite, genius! You now have unlimited access to all premium features. 
-          Let's crush those study goals together!
+          Welcome to the elite, genius! You now have unlimited access to all premium features.
+          Redirecting you to the dashboard...
         </p>
 
-        {/* Features unlocked */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
             { icon: Sparkles, label: "Unlimited AI" },
@@ -187,7 +174,6 @@ export default function Success() {
           ))}
         </div>
 
-        {/* CTA Button */}
         <Button
           variant="hero"
           size="lg"
@@ -195,15 +181,14 @@ export default function Success() {
           onClick={() => navigate("/dashboard")}
         >
           <Rocket className="w-5 h-5 mr-2" />
-          Get Started
+          Go to Dashboard Now
         </Button>
 
         <p className="text-sm text-muted-foreground mt-6">
-          Your premium membership is now active. Time to become a study genius!
+          Your premium membership is now active. Redirecting in a few seconds...
         </p>
       </div>
 
-      {/* Add custom animation */}
       <style>{`
         @keyframes bounce-slow {
           0%, 100% { transform: translateY(0); }
@@ -223,3 +208,4 @@ export default function Success() {
     </div>
   );
 }
+
