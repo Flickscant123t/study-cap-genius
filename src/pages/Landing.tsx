@@ -27,14 +27,15 @@ export default function Landing() {
   return (
     <div className="min-h-screen gradient-hero relative overflow-hidden">
       <div
-        className="absolute inset-0 opacity-70"
+        className="absolute inset-0 opacity-70 pointer-events-none z-0"
         style={{
           backgroundImage: "url('/landing-olive-bg.svg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
-      <div className="absolute inset-0 bg-background/35" />
+      <div className="absolute inset-0 bg-background/35 pointer-events-none z-0" />
+      <div className="relative z-10">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -98,6 +99,7 @@ export default function Landing() {
           <LandingBelowFold />
         </Suspense>
       )}
+      </div>
     </div>
   );
 }
