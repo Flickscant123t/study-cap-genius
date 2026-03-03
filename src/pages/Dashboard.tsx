@@ -24,6 +24,7 @@ import {
   Clock,
   PenTool,
   MessageCircle,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -172,6 +173,7 @@ export default function Dashboard() {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", active: true, isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: false, isFree: true },
+    { icon: Library, label: "Codex", path: "/codex", active: false, isFree: true },
     ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", active: false, isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", active: false, isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },

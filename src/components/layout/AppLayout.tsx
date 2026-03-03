@@ -20,6 +20,7 @@ import {
   Target,
   Lock,
   MessageCircle,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { redirectToStripeCheckout } from "@/lib/stripe";
@@ -45,6 +46,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", isFree: true },
+    { icon: Library, label: "Codex", path: "/codex", isFree: true },
     ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", isFree: false },

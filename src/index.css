@@ -484,4 +484,34 @@
     pointer-events: none;
     z-index: 0;
   }
+
+  .codex-h1 {
+    @apply text-3xl md:text-4xl font-bold tracking-tight;
+    color: #2f2f2f;
+  }
+
+  .codex-h2 {
+    @apply text-2xl font-semibold tracking-tight;
+    color: #2f2f2f;
+  }
+
+  .codex-h3 {
+    @apply text-lg font-semibold;
+    color: #2f2f2f;
+  }
+
+  .codex-h4 {
+    @apply text-base font-semibold;
+    color: #2f2f2f;
+  }
+
+  .codex-subtitle {
+    @apply text-base md:text-lg leading-relaxed;
+    color: #5f6f52;
+  }
+
+  .codex-body {
+    @apply text-sm md:text-base leading-7;
+    color: #2f2f2f;
+  }
 }

@@ -20,6 +20,7 @@ import {
   Target,
   Lock,
   MessageCircle,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -107,6 +108,7 @@ export default function WhiteboardPage() {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", active: false, isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: true, isFree: true },
+    { icon: Library, label: "Codex", path: "/codex", active: false, isFree: true },
     ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", active: false, isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", active: false, isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },

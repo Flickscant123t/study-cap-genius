@@ -19,6 +19,7 @@ const Success = lazy(() => import("./pages/Success"));
 const StudyPlanner = lazy(() => import("./pages/StudyPlanner"));
 const Coach = lazy(() => import("./pages/Coach"));
 const AdminCoach = lazy(() => import("./pages/AdminCoach"));
+const Codex = lazy(() => import("./pages/Codex"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/study-planner" element={<StudyPlanner />} />
               <Route path="/coach" element={<Coach />} />
               <Route path="/admin123" element={<AdminCoach />} />
+              <Route path="/codex" element={<Codex />} />
               <Route path="/~oauth/*" element={null} />
               <Route path="*" element={<NotFound />} />
             </Routes>
