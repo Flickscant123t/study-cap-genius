@@ -68,8 +68,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (syncError) {
           console.error('Error syncing premium status from Stripe:', syncError);
         } else {
-          isPremiumUser = Boolean((syncData as { premium?: boolean } | null)?.premium);
-          resolvedPlan = isPremiumUser ? 'premium' : 'free';
+          const syncPayload = (syncData as { premium?: boolean; plan?: 'premium' | 'enterprise' } | null);
+          isPremiumUser = Boolean(syncPayload?.premium);
+          resolvedPlan = isPremiumUser ? (syncPayload?.plan ?? 'premium') : 'free';
         }
       }
 

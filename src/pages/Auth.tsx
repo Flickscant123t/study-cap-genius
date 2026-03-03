@@ -34,10 +34,11 @@ export default function Auth() {
   useEffect(() => {
     if (user) {
       const upgrade = searchParams.get('upgrade');
-      if (upgrade === 'true') {
+      if (upgrade === 'true' || upgrade === 'premium' || upgrade === 'enterprise') {
         redirectToStripeCheckout({
           email: user.email,
           userId: user.id,
+          plan: upgrade === 'enterprise' ? 'enterprise' : 'premium',
         });
       } else {
         navigate('/dashboard');

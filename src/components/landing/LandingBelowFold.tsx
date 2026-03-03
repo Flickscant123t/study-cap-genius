@@ -81,7 +81,8 @@ export default function LandingBelowFold() {
                   Premium
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">$9.99</span>
+                  <span className="text-lg text-muted-foreground line-through">$9.99</span>
+                  <span className="text-4xl font-bold">$2.50</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </div>
@@ -113,7 +114,7 @@ export default function LandingBelowFold() {
                 </li>
               </ul>
 
-              <Button variant="accent" size="lg" className="w-full" onClick={() => navigate('/auth?upgrade=true')}>
+              <Button variant="accent" size="lg" className="w-full" onClick={() => navigate('/auth?upgrade=premium')}>
                 Upgrade to Premium
               </Button>
             </Card>
@@ -149,8 +150,8 @@ export default function LandingBelowFold() {
                 </li>
               </ul>
 
-              <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth')}>
-                Contact for Enterprise
+              <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth?upgrade=enterprise')}>
+                Get Enterprise
               </Button>
             </Card>
           </div>

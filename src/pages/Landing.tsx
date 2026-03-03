@@ -74,7 +74,7 @@ export default function Landing() {
               Start Free
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button size="xl" variant="heroOutline" onClick={() => navigate("/auth?upgrade=true")}>
+            <Button size="xl" variant="heroOutline" onClick={() => navigate("/auth?upgrade=premium")}>
               <Crown className="w-5 h-5" />
               Upgrade to Premium
             </Button>

@@ -16,9 +16,29 @@ type StripeSubscription = {
   customer: string;
   status: string;
   current_period_end?: number | null;
+  items?: {
+    data?: Array<{
+      price?: {
+        id?: string;
+      };
+    }>;
+  };
 };
 
 const PREMIUM_STATUSES = new Set(["active", "trialing"]);
+const resolvePlanFromPriceId = (
+  priceId: string | null | undefined,
+  premiumPriceId: string | null | undefined,
+  enterprisePriceId: string | null | undefined,
+) => {
+  if (priceId && enterprisePriceId && priceId === enterprisePriceId) {
+    return "enterprise";
+  }
+  if (priceId && premiumPriceId && priceId === premiumPriceId) {
+    return "premium";
+  }
+  return "premium";
+};
 
 const jsonResponse = (status: number, payload: Record<string, unknown>) =>
   new Response(JSON.stringify(payload), {
@@ -82,6 +102,8 @@ serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    const STRIPE_PRICE_ID = Deno.env.get("STRIPE_PRICE_ID");
+    const STRIPE_ENTERPRISE_PRICE_ID = Deno.env.get("STRIPE_ENTERPRISE_PRICE_ID");
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY || !STRIPE_SECRET_KEY) {
       return jsonResponse(500, { error: "Server configuration error" });
@@ -136,6 +158,8 @@ serve(async (req) => {
     const currentPeriodEnd = matchedSubscription.current_period_end
       ? new Date(matchedSubscription.current_period_end * 1000).toISOString()
       : null;
+    const priceId = matchedSubscription.items?.data?.[0]?.price?.id;
+    const plan = resolvePlanFromPriceId(priceId, STRIPE_PRICE_ID, STRIPE_ENTERPRISE_PRICE_ID);
 
     const { error: upsertError } = await supabaseAdminClient
       .from("subscriptions")
@@ -145,7 +169,7 @@ serve(async (req) => {
           stripe_customer_id: matchedSubscription.customer,
           stripe_subscription_id: matchedSubscription.id,
           status: matchedSubscription.status,
-          plan: "premium",
+          plan,
           current_period_end: currentPeriodEnd,
         },
         { onConflict: "user_id" },
@@ -159,6 +183,7 @@ serve(async (req) => {
     return jsonResponse(200, {
       synced: true,
       premium: true,
+      plan,
       status: matchedSubscription.status,
       currentPeriodEnd,
     });

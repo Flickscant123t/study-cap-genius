@@ -22,7 +22,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { redirectToStripeCheckout } from "@/lib/stripe";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -39,11 +39,6 @@ export function AppLayout({ children, title }: AppLayoutProps) {
     await signOut();
     navigate('/');
   };
-
-  const stripeCheckoutUrl = getStripeCheckoutUrl({
-    email: user?.email,
-    userId: user?.id,
-  });
 
   // Settings and Tasks are accessible to free users (with limits)
   // Notes, Flashcards, Study Planner are premium-only but show locked view
@@ -148,15 +143,25 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             })}
           </nav>
 
-          {/* Upgrade Button (for free users) */}
+          {/* Upgrade Buttons */}
           {!isPremium && (
             <Button 
               variant="accent" 
               className="w-full mb-4"
-              onClick={() => (window.location.href = stripeCheckoutUrl)}
+              onClick={() => redirectToStripeCheckout({ email: user?.email, userId: user?.id, plan: "premium" })}
             >
               <Crown className="w-4 h-4" />
-              Upgrade
+              Upgrade to Premium
+            </Button>
+          )}
+          {plan === "premium" && (
+            <Button 
+              variant="outline" 
+              className="w-full mb-4"
+              onClick={() => redirectToStripeCheckout({ email: user?.email, userId: user?.id, plan: "enterprise" })}
+            >
+              <Crown className="w-4 h-4" />
+              Upgrade to Enterprise
             </Button>
           )}
 

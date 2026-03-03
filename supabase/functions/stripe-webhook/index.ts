@@ -11,6 +11,20 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 const normalizeEmail = (email: string | null | undefined) =>
   email?.trim().toLowerCase() ?? "";
 
+const resolvePlanFromPriceId = (
+  priceId: string | null | undefined,
+  premiumPriceId: string | null | undefined,
+  enterprisePriceId: string | null | undefined,
+) => {
+  if (priceId && enterprisePriceId && priceId === enterprisePriceId) {
+    return "enterprise";
+  }
+  if (priceId && premiumPriceId && priceId === premiumPriceId) {
+    return "premium";
+  }
+  return "premium";
+};
+
 const findUserByEmail = async (supabase: any, email: string) => {
   const normalizedTargetEmail = normalizeEmail(email);
   if (!normalizedTargetEmail) {
@@ -82,6 +96,8 @@ serve(async (req) => {
 
   try {
     const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
+    const STRIPE_PRICE_ID = Deno.env.get("STRIPE_PRICE_ID");
+    const STRIPE_ENTERPRISE_PRICE_ID = Deno.env.get("STRIPE_ENTERPRISE_PRICE_ID");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -103,6 +119,7 @@ serve(async (req) => {
         const customerId = session.customer;
         const subscriptionId = session.subscription;
         const customerEmail = session.customer_email || session.customer_details?.email;
+        const checkoutPlan = session.metadata?.plan === "enterprise" ? "enterprise" : "premium";
 
         console.log("Checkout completed for:", customerEmail);
 
@@ -119,7 +136,7 @@ serve(async (req) => {
               stripe_customer_id: customerId,
               stripe_subscription_id: subscriptionId,
               status: "active",
-              plan: "premium",
+              plan: checkoutPlan,
               current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             }, {
               onConflict: "user_id"
@@ -145,6 +162,8 @@ serve(async (req) => {
         const subscription = event.data.object;
         const customerId = subscription.customer;
         const status = subscription.status;
+        const priceId = subscription?.items?.data?.[0]?.price?.id as string | undefined;
+        const plan = resolvePlanFromPriceId(priceId, STRIPE_PRICE_ID, STRIPE_ENTERPRISE_PRICE_ID);
 
         console.log("Subscription update:", customerId, status);
 
@@ -153,7 +172,7 @@ serve(async (req) => {
           .from("subscriptions")
           .update({
             status: status === "active" ? "active" : "inactive",
-            plan: status === "active" ? "premium" : "free",
+            plan: status === "active" ? plan : "free",
             current_period_end: subscription.current_period_end 
               ? new Date(subscription.current_period_end * 1000).toISOString()
               : null,
@@ -169,6 +188,8 @@ serve(async (req) => {
       case "invoice.payment_succeeded": {
         const invoice = event.data.object;
         const customerId = invoice.customer;
+        const priceId = invoice?.lines?.data?.[0]?.price?.id as string | undefined;
+        const plan = resolvePlanFromPriceId(priceId, STRIPE_PRICE_ID, STRIPE_ENTERPRISE_PRICE_ID);
 
         console.log("Payment succeeded for customer:", customerId);
 
@@ -177,7 +198,7 @@ serve(async (req) => {
           .from("subscriptions")
           .update({
             status: "active",
-            plan: "premium",
+            plan,
             current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           })
           .eq("stripe_customer_id", customerId);

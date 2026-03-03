@@ -6,6 +6,7 @@ interface StripeCheckoutUrlOptions {
   email?: string | null;
   userId?: string | null;
   promoCode?: string | null;
+  plan?: "premium" | "enterprise";
 }
 
 export const getStripeCheckoutUrl = ({ email, userId, promoCode }: StripeCheckoutUrlOptions = {}) => {
@@ -26,12 +27,18 @@ export const getStripeCheckoutUrl = ({ email, userId, promoCode }: StripeCheckou
   return url.toString();
 };
 
-export const redirectToStripeCheckout = async ({ email, userId, promoCode }: StripeCheckoutUrlOptions = {}) => {
+export const redirectToStripeCheckout = async ({
+  email,
+  userId,
+  promoCode,
+  plan = "premium",
+}: StripeCheckoutUrlOptions = {}) => {
   const { data, error } = await supabase.functions.invoke("stripe-create-checkout", {
     body: {
       email,
       userId,
       promoCode,
+      plan,
       successUrl: `${window.location.origin}/success`,
       cancelUrl: window.location.href,
     },

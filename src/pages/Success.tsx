@@ -43,7 +43,10 @@ export default function Success() {
           .eq("user_id", user.id)
           .maybeSingle();
 
-        if (subscription?.status === "active" && subscription?.plan === "premium") {
+        if (
+          subscription?.status === "active" &&
+          (subscription?.plan === "premium" || subscription?.plan === "enterprise")
+        ) {
           if (cancelled) return;
           setVerified(true);
           setIsVerifying(false);

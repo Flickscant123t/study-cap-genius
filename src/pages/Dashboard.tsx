@@ -355,8 +355,8 @@ export default function Dashboard() {
                     className={cn(
                       "max-w-[80%] rounded-2xl px-4 py-3",
                       message.role === "user"
-                        ? "gradient-primary text-primary-foreground"
-                        : "bg-card border border-border"
+                        ? "bg-white text-foreground border border-[#B7C4A1]"
+                        : "bg-[#B7C4A1] text-[#2F2F2F] border border-[#5F6F52]/30"
                     )}
                   >
                     {message.role === "assistant" ? (
@@ -391,7 +391,7 @@ export default function Dashboard() {
           )}
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="sticky bottom-0 pt-4 bg-background">
+          <form onSubmit={handleSendMessage} className="sticky bottom-0 pt-4 bg-[#DDE5D0]">
             {!canSendMessage && (
               <div className="mb-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-center">
                 <p className="text-destructive font-medium">You've reached your daily limit.</p>
@@ -412,7 +412,7 @@ export default function Dashboard() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={canSendMessage ? "Ask me anything about your studies..." : "Upgrade to continue..."}
                 disabled={!canSendMessage || isLoading}
-                className="flex-1 h-12 rounded-xl"
+                className="flex-1 h-12 rounded-xl bg-[#DDE5D0] border-[#5F6F52] focus-visible:ring-[#5F6F52]"
               />
               <Button 
                 type="submit" 

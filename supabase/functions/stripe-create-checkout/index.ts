@@ -46,6 +46,7 @@ serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
     const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY");
     const STRIPE_PRICE_ID = Deno.env.get("STRIPE_PRICE_ID");
+    const STRIPE_ENTERPRISE_PRICE_ID = Deno.env.get("STRIPE_ENTERPRISE_PRICE_ID");
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !STRIPE_SECRET_KEY || !STRIPE_PRICE_ID) {
       return jsonResponse(500, { error: "Server configuration error" });
@@ -87,12 +88,13 @@ serve(async (req) => {
     form.set("mode", "subscription");
     form.set("success_url", successUrl);
     form.set("cancel_url", cancelUrl);
-    form.set("line_items[0][price]", STRIPE_PRICE_ID);
+    form.set("line_items[0][price]", selectedPriceId);
     form.set("line_items[0][quantity]", "1");
     form.set("allow_promotion_codes", "true");
     form.set("client_reference_id", user.id);
     form.set("customer_email", user.email ?? "");
     form.set("metadata[user_id]", user.id);
+    form.set("metadata[plan]", plan);
 
     const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -117,3 +119,8 @@ serve(async (req) => {
     });
   }
 });
+    const plan = body?.plan === "enterprise" ? "enterprise" : "premium";
+    const selectedPriceId =
+      plan === "enterprise"
+        ? (STRIPE_ENTERPRISE_PRICE_ID || STRIPE_PRICE_ID)
+        : STRIPE_PRICE_ID;
