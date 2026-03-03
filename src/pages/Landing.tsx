@@ -25,7 +25,16 @@ export default function Landing() {
     };
   }, []);
   return (
-    <div className="min-h-screen gradient-hero">
+    <div className="min-h-screen gradient-hero relative overflow-hidden">
+      <div
+        className="absolute inset-0 opacity-70"
+        style={{
+          backgroundImage: "url('/landing-olive-bg.svg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      />
+      <div className="absolute inset-0 bg-background/35" />
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -46,7 +55,7 @@ export default function Landing() {
         </div>
       </nav>
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden z-10">
         {/* Decorative glow orbs */}
         <div className="hero-glow top-20 -left-40 animate-glow-pulse" />
         <div className="hero-glow top-40 -right-40 animate-glow-pulse" style={{ animationDelay: "2s" }} />

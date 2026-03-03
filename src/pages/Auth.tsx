@@ -25,26 +25,38 @@ export default function Auth() {
   const [resendingVerification, setResendingVerification] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [redirectingToCheckout, setRedirectingToCheckout] = useState(false);
   
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signIn, signUp, signInWithGoogle, resendVerificationEmail, user } = useAuth();
   const { toast } = useToast();
 
+  const selectedUpgrade = searchParams.get('upgrade');
+  const requestedPlan =
+    selectedUpgrade === 'enterprise' ? 'enterprise' : selectedUpgrade === 'premium' || selectedUpgrade === 'true'
+      ? 'premium'
+      : null;
+
+  const redirectToRequestedCheckout = (emailValue: string, userId: string) => {
+    if (!requestedPlan || redirectingToCheckout) return;
+    setRedirectingToCheckout(true);
+    redirectToStripeCheckout({
+      email: emailValue,
+      userId,
+      plan: requestedPlan,
+    });
+  };
+
   useEffect(() => {
     if (user) {
-      const upgrade = searchParams.get('upgrade');
-      if (upgrade === 'true' || upgrade === 'premium' || upgrade === 'enterprise') {
-        redirectToStripeCheckout({
-          email: user.email,
-          userId: user.id,
-          plan: upgrade === 'enterprise' ? 'enterprise' : 'premium',
-        });
+      if (requestedPlan) {
+        redirectToRequestedCheckout(user.email ?? "", user.id);
       } else {
         navigate('/dashboard');
       }
     }
-  }, [user, navigate, searchParams]);
+  }, [user, navigate, requestedPlan]);
 
   const validateForm = () => {
     try {
@@ -144,6 +156,10 @@ export default function Auth() {
           }
         } else {
           setPendingVerificationEmail("");
+          if (requestedPlan && user?.id) {
+            redirectToRequestedCheckout(user.email ?? email, user.id);
+            return;
+          }
           toast({
             title: "Welcome back!",
             description: "You've successfully signed in.",
