@@ -1,79 +1,65 @@
-# Welcome to your Lovable project
+# Study Cap Genius
 
-## Project info
+Study Cap Genius is a Vite + React + TypeScript app with Supabase and Stripe integration.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Tech stack
 
-## How can I edit this code?
+- Vite
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Supabase
+- Stripe
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Local development
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/Flickscant123t/study-cap-genius.git
+cd study-cap-genius
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Useful scripts:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```sh
+npm run build
+npm run test
+npm run lint
+```
 
-**Use GitHub Codespaces**
+## Deploying to Vercel
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+This repo is configured for Vercel deployment from GitHub.
 
-## What technologies are used for this project?
+If deployment stops triggering or the project appears disconnected from Vercel:
 
-This project is built with:
+```sh
+npx vercel login
+npx vercel link
+npx vercel --prod
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Then verify in the Vercel dashboard:
 
-## How can I deploy this project?
+- `Project Settings -> Git`: repository is connected
+- Production branch is `main`
+- Required environment variables are set
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+Note: newer Vercel CLI versions can warn on older Node 20.x builds. If needed, upgrade Node to latest 20.x or 22.x.
 
 ## Stripe webhooks
 
-- Stripe sends events to `https://studycapgenius.vercel.app/api/stripe-webhook`, which proxies the payload to the Supabase function `stripe-webhook`.
-- Deploy the Supabase functions (`stripe-webhook`, `stripe-renewal`, `stripe-sync-subscription`) via `supabase functions deploy <name> --project-ref pthlcyiiceyvpzkalwog` and make sure `STRIPE_SECRET_KEY` is set in Supabase secrets.
-- After each deploy hit “Resend” on the latest `checkout.session.completed` webhook from Stripe to re-sync any outstanding payments.
+- Stripe sends events to `https://studycapgenius.vercel.app/api/stripe-webhook`.
+- That route proxies payloads to the Supabase function `stripe-webhook`.
+- Deploy Supabase functions with:
 
-## Can I connect a custom domain to my Lovable project?
+```sh
+supabase functions deploy stripe-webhook --project-ref pthlcyiiceyvpzkalwog
+supabase functions deploy stripe-renewal --project-ref pthlcyiiceyvpzkalwog
+supabase functions deploy stripe-sync-subscription --project-ref pthlcyiiceyvpzkalwog
+```
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Ensure `STRIPE_SECRET_KEY` is set in Supabase secrets.
+- After webhook-related deploys, resend the latest `checkout.session.completed` event from Stripe to resync outstanding payments.
