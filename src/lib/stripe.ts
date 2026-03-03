@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
+const STRIPE_ENTERPRISE_CHECKOUT_URL =
+  import.meta.env.VITE_STRIPE_ENTERPRISE_CHECKOUT_URL || "";
 
 interface StripeCheckoutUrlOptions {
   email?: string | null;
@@ -9,8 +11,17 @@ interface StripeCheckoutUrlOptions {
   plan?: "premium" | "enterprise";
 }
 
-export const getStripeCheckoutUrl = ({ email, userId, promoCode }: StripeCheckoutUrlOptions = {}) => {
-  const url = new URL(STRIPE_CHECKOUT_URL);
+export const getStripeCheckoutUrl = ({
+  email,
+  userId,
+  promoCode,
+  plan = "premium",
+}: StripeCheckoutUrlOptions = {}) => {
+  const checkoutBaseUrl =
+    plan === "enterprise" && STRIPE_ENTERPRISE_CHECKOUT_URL
+      ? STRIPE_ENTERPRISE_CHECKOUT_URL
+      : STRIPE_CHECKOUT_URL;
+  const url = new URL(checkoutBaseUrl);
 
   if (email) {
     url.searchParams.set("prefilled_email", email);
@@ -45,8 +56,13 @@ export const redirectToStripeCheckout = async ({
   });
 
   if (error || !data?.url) {
+    if (plan === "enterprise" && !STRIPE_ENTERPRISE_CHECKOUT_URL) {
+      console.error("Enterprise checkout failed and no enterprise fallback URL is configured.");
+      return;
+    }
+
     // Fallback to static payment link if edge function is not deployed yet.
-    window.location.href = getStripeCheckoutUrl({ email, userId, promoCode });
+    window.location.href = getStripeCheckoutUrl({ email, userId, promoCode, plan });
     return;
   }
 

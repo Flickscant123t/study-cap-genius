@@ -302,12 +302,7 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  :root,
-  .dark,
-  .high-contrast,
-  .midnight,
-  .forest,
-  .sunset {
+  :root {
     --background: 84 22% 86%;
     --foreground: 0 0% 18%;
     --card: 84 22% 70%;
@@ -342,6 +337,85 @@
     --shadow-soft: 0 4px 20px -4px rgba(95, 111, 82, 0.15);
     --shadow-card: 0 2px 12px -2px rgba(95, 111, 82, 0.15);
     --shadow-hover: 0 8px 30px -6px rgba(95, 111, 82, 0.2);
+  }
+
+  .dark {
+    --background: 93 10% 20%;
+    --foreground: 84 22% 90%;
+    --card: 93 11% 26%;
+    --card-foreground: 84 22% 90%;
+    --popover: 93 10% 20%;
+    --popover-foreground: 84 22% 90%;
+    --primary: 96 15% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 93 11% 26%;
+    --secondary-foreground: 84 22% 90%;
+    --muted: 93 10% 24%;
+    --muted-foreground: 84 10% 75%;
+    --accent: 93 15% 38%;
+    --accent-foreground: 0 0% 100%;
+    --border: 93 15% 38%;
+    --input: 93 10% 24%;
+    --ring: 96 15% 57%;
+    --sidebar-background: 93 10% 20%;
+    --sidebar-foreground: 84 22% 90%;
+    --sidebar-primary: 96 15% 57%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 93 11% 26%;
+    --sidebar-accent-foreground: 84 22% 90%;
+    --sidebar-border: 93 15% 38%;
+    --sidebar-ring: 96 15% 57%;
+    --gradient-hero: linear-gradient(180deg, #3a4533 0%, #313a2c 100%);
+    --gradient-card: linear-gradient(145deg, #495541 0%, #44503d 100%);
+  }
+
+  .high-contrast {
+    --background: 84 22% 92%;
+    --foreground: 0 0% 14%;
+    --card: 84 22% 74%;
+    --card-foreground: 0 0% 14%;
+    --popover: 84 22% 92%;
+    --popover-foreground: 0 0% 14%;
+    --primary: 93 15% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 84 22% 74%;
+    --secondary-foreground: 93 15% 30%;
+    --muted: 84 20% 84%;
+    --muted-foreground: 93 12% 30%;
+    --accent: 93 15% 30%;
+    --accent-foreground: 0 0% 100%;
+    --border: 93 15% 25%;
+    --input: 84 22% 92%;
+    --ring: 93 15% 25%;
+    --sidebar-background: 84 22% 92%;
+    --sidebar-foreground: 0 0% 14%;
+    --sidebar-primary: 93 15% 30%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 84 22% 74%;
+    --sidebar-accent-foreground: 93 15% 30%;
+    --sidebar-border: 93 15% 25%;
+    --sidebar-ring: 93 15% 25%;
+  }
+
+  .midnight {
+    --background: 93 10% 18%;
+    --card: 93 10% 23%;
+    --secondary: 93 11% 25%;
+    --muted: 93 10% 22%;
+  }
+
+  .forest {
+    --background: 103 12% 22%;
+    --card: 103 13% 28%;
+    --secondary: 103 14% 30%;
+    --muted: 103 12% 25%;
+  }
+
+  .sunset {
+    --background: 80 12% 24%;
+    --card: 80 13% 30%;
+    --secondary: 80 14% 32%;
+    --muted: 80 12% 27%;
   }
 }
 

@@ -120,7 +120,8 @@ serve(async (req) => {
   }
 });
     const plan = body?.plan === "enterprise" ? "enterprise" : "premium";
-    const selectedPriceId =
-      plan === "enterprise"
-        ? (STRIPE_ENTERPRISE_PRICE_ID || STRIPE_PRICE_ID)
-        : STRIPE_PRICE_ID;
+    if (plan === "enterprise" && !STRIPE_ENTERPRISE_PRICE_ID) {
+      return jsonResponse(500, { error: "Missing STRIPE_ENTERPRISE_PRICE_ID" });
+    }
+
+    const selectedPriceId = plan === "enterprise" ? STRIPE_ENTERPRISE_PRICE_ID : STRIPE_PRICE_ID;
