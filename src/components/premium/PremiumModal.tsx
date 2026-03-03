@@ -6,9 +6,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, Sparkles, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Crown, Sparkles, CheckCircle, Tag } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { useState } from "react";
 
 interface PremiumModalProps {
   open: boolean;
@@ -24,10 +26,12 @@ export function PremiumModal({
   featureDescription = "This is a premium feature. Upgrade to unlock unlimited access.",
 }: PremiumModalProps) {
   const { user } = useAuth();
+  const [promoCode, setPromoCode] = useState("");
 
   const stripeUrl = getStripeCheckoutUrl({
     email: user?.email,
     userId: user?.id,
+    promoCode: promoCode.trim() || null,
   });
 
   return (
@@ -54,6 +58,16 @@ export function PremiumModal({
               {benefit}
             </div>
           ))}
+        </div>
+
+        <div className="flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-1">
+          <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+          <Input
+            placeholder="Promo code (optional)"
+            value={promoCode}
+            onChange={(e) => setPromoCode(e.target.value)}
+            className="border-0 px-0 h-9 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
         </div>
 
         <div className="flex flex-col gap-2">
