@@ -50,7 +50,7 @@ const auraThemes: { id: AuraTheme; name: string; description: string; colors: st
 
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, isPremium, loading: authLoading } = useAuth();
+  const { user, isPremium, plan, loading: authLoading } = useAuth();
   const { preferences, loading, updatePreferences } = usePreferences();
   const { toast } = useToast();
   const [auraTheme, setAuraTheme] = useState<AuraTheme>('default');
@@ -216,7 +216,7 @@ export default function Settings() {
                 <>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-semibold">
                     <Crown className="w-3 h-3" />
-                    Premium Member
+                    {plan === "enterprise" ? "Enterprise Member" : "Premium Member"}
                   </span>
                   <div className="mt-3 space-y-2">
                     <Button

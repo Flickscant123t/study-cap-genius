@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Star,
   Trophy,
+  MessageCircle,
   Zap,
 } from "lucide-react";
 
@@ -26,7 +27,7 @@ export default function LandingBelowFold() {
             <p className="text-lg text-muted-foreground">Free forever, or unlock unlimited potential</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {/* Free Plan */}
             <Card className="p-8 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
               <div className="mb-6">
@@ -80,7 +81,7 @@ export default function LandingBelowFold() {
                   Premium
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">$2.50</span>
+                  <span className="text-4xl font-bold">$9.99</span>
                   <span className="text-muted-foreground">/month</span>
                 </div>
               </div>
@@ -114,6 +115,42 @@ export default function LandingBelowFold() {
 
               <Button variant="accent" size="lg" className="w-full" onClick={() => navigate('/auth?upgrade=true')}>
                 Upgrade to Premium
+              </Button>
+            </Card>
+
+            <Card className="p-8 shadow-card hover:shadow-hover transition-all duration-300 hover:-translate-y-1">
+              <div className="mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-sm font-medium mb-4">
+                  <MessageCircle className="w-4 h-4" />
+                  Enterprise
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-bold">$30</span>
+                  <span className="text-muted-foreground">/month</span>
+                </div>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <span>Everything in Premium</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <span>Personal trainer (Coach)</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <span>Priority human replies</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="w-5 h-5 text-primary" />
+                  <span>Dedicated Q&A support channel</span>
+                </li>
+              </ul>
+
+              <Button variant="outline" size="lg" className="w-full" onClick={() => navigate('/auth')}>
+                Contact for Enterprise
               </Button>
             </Card>
           </div>

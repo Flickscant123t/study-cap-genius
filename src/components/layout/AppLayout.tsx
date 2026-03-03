@@ -19,6 +19,7 @@ import {
   PenTool,
   Target,
   Lock,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getStripeCheckoutUrl } from "@/lib/stripe";
@@ -32,7 +33,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut, isPremium, dailyUsage, maxFreeUsage } = useAuth();
+  const { user, signOut, isPremium, isEnterprise, plan, dailyUsage, maxFreeUsage } = useAuth();
 
   const handleLogout = async () => {
     await signOut();
@@ -49,6 +50,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", isFree: true },
+    ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", isFree: false },
     { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", isFree: true }, // Allow access with modal locks
@@ -89,7 +91,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               {isPremium && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground">
                   <Crown className="w-3 h-3" />
-                  Premium
+                  {plan === "enterprise" ? "Enterprise" : "Premium"}
                 </span>
               )}
             </div>
@@ -154,7 +156,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
               onClick={() => (window.location.href = stripeCheckoutUrl)}
             >
               <Crown className="w-4 h-4" />
-              Upgrade to Premium
+              Upgrade
             </Button>
           )}
 

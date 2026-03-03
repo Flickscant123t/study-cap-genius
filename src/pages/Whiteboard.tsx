@@ -19,6 +19,7 @@ import {
   ArrowLeft,
   Target,
   Lock,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -43,7 +44,7 @@ export default function WhiteboardPage() {
   const [activeWhiteboard, setActiveWhiteboard] = useState<Whiteboard | null>(null);
   
   const navigate = useNavigate();
-  const { user, signOut, isPremium, dailyUsage, maxFreeUsage } = useAuth();
+  const { user, signOut, isPremium, isEnterprise, plan, dailyUsage, maxFreeUsage } = useAuth();
 
   useEffect(() => {
     if (!user) {
@@ -106,6 +107,7 @@ export default function WhiteboardPage() {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", active: false, isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: true, isFree: true },
+    ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", active: false, isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", active: false, isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },
     { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false, isFree: false },
@@ -144,7 +146,7 @@ export default function WhiteboardPage() {
               {isPremium && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground">
                   <Crown className="w-3 h-3" />
-                  Premium
+                  {plan === "enterprise" ? "Enterprise" : "Premium"}
                 </span>
               )}
             </div>

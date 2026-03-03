@@ -17,6 +17,8 @@ interface AuthContextType {
   incrementUsage: () => void;
   resetUsage: () => void;
   refreshPremiumStatus: () => Promise<void>;
+  plan: 'free' | 'premium' | 'enterprise';
+  isEnterprise: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +30,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState(false);
+  const [isEnterprise, setIsEnterprise] = useState(false);
+  const [plan, setPlan] = useState<'free' | 'premium' | 'enterprise'>('free');
   const [dailyUsage, setDailyUsage] = useState(0);
 
   // Function to check premium status from database
@@ -47,8 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Check for admin override
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       const isAdminOverride = currentUser?.email === 'ben.haener@lgr.ch';
-      
-      let isPremiumUser = isAdminOverride || (data?.status === 'active' && data?.plan === 'premium');
+
+      const dbPlan = data?.status === 'active' && (data?.plan === 'premium' || data?.plan === 'enterprise')
+        ? (data.plan as 'premium' | 'enterprise')
+        : 'free';
+      let resolvedPlan: 'free' | 'premium' | 'enterprise' = dbPlan;
+      let isPremiumUser = isAdminOverride || resolvedPlan !== 'free';
 
       // Safety net: if webhook missed, try syncing directly from Stripe once.
       if (!isPremiumUser) {
@@ -61,13 +69,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('Error syncing premium status from Stripe:', syncError);
         } else {
           isPremiumUser = Boolean((syncData as { premium?: boolean } | null)?.premium);
+          resolvedPlan = isPremiumUser ? 'premium' : 'free';
         }
       }
 
       setIsPremium(isPremiumUser);
+      setIsEnterprise(resolvedPlan === 'enterprise');
+      setPlan(resolvedPlan);
       
       // Also update localStorage for quick access
       localStorage.setItem('studycap_premium', isPremiumUser ? 'true' : 'false');
+      localStorage.setItem('studycap_plan', resolvedPlan);
       
       return isPremiumUser;
     } catch (err) {
@@ -97,7 +109,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }, 0);
         } else {
           setIsPremium(false);
+          setIsEnterprise(false);
+          setPlan('free');
           localStorage.setItem('studycap_premium', 'false');
+          localStorage.setItem('studycap_plan', 'free');
         }
       }
     );
@@ -180,7 +195,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setSession(null);
     setIsPremium(false);
+    setIsEnterprise(false);
+    setPlan('free');
     localStorage.setItem('studycap_premium', 'false');
+    localStorage.setItem('studycap_plan', 'free');
   };
 
   const incrementUsage = () => {
@@ -211,6 +229,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       incrementUsage,
       resetUsage,
       refreshPremiumStatus,
+      plan,
+      isEnterprise,
     }}>
       {children}
     </AuthContext.Provider>

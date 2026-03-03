@@ -23,6 +23,7 @@ import {
   Target,
   Clock,
   PenTool,
+  MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -43,7 +44,7 @@ export default function Dashboard() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const navigate = useNavigate();
-  const { user, signOut, isPremium, dailyUsage, maxFreeUsage, incrementUsage } = useAuth();
+  const { user, signOut, isPremium, isEnterprise, plan, dailyUsage, maxFreeUsage, incrementUsage } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -171,6 +172,7 @@ export default function Dashboard() {
   const navItems = [
     { icon: Home, label: "Home", path: "/dashboard", active: true, isFree: true },
     { icon: PenTool, label: "Whiteboard", path: "/whiteboard", active: false, isFree: true },
+    ...(isEnterprise ? [{ icon: MessageCircle, label: "Coach", path: "/coach", active: false, isFree: true }] : []),
     { icon: Target, label: "Study Planner", path: "/study-planner", active: false, isFree: false },
     { icon: BookOpen, label: "Notes", path: "/notes", active: false, isFree: false },
     { icon: FlashcardIcon, label: "Flashcards", path: "/flashcards", active: false, isFree: false },
@@ -209,7 +211,7 @@ export default function Dashboard() {
               {isPremium && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full gradient-accent text-xs font-semibold text-accent-foreground">
                   <Crown className="w-3 h-3" />
-                  Premium
+                  {plan === "enterprise" ? "Enterprise" : "Premium"}
                 </span>
               )}
             </div>

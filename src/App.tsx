@@ -17,6 +17,8 @@ const Tasks = lazy(() => import("./pages/Tasks"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Success = lazy(() => import("./pages/Success"));
 const StudyPlanner = lazy(() => import("./pages/StudyPlanner"));
+const Coach = lazy(() => import("./pages/Coach"));
+const AdminCoach = lazy(() => import("./pages/AdminCoach"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 
@@ -65,6 +67,8 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/success" element={<Success />} />
               <Route path="/study-planner" element={<StudyPlanner />} />
+              <Route path="/coach" element={<Coach />} />
+              <Route path="/admin123" element={<AdminCoach />} />
               <Route path="/~oauth/*" element={null} />
               <Route path="*" element={<NotFound />} />
             </Routes>
