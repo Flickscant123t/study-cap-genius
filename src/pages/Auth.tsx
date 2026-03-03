@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { GraduationCap, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { redirectToStripeCheckout } from "@/lib/stripe";
 import { lovable } from "@/integrations/lovable/index";
 import { z } from "zod";
 
@@ -35,8 +35,7 @@ export default function Auth() {
     if (user) {
       const upgrade = searchParams.get('upgrade');
       if (upgrade === 'true') {
-        // Redirect to Stripe checkout
-        window.location.href = getStripeCheckoutUrl({
+        redirectToStripeCheckout({
           email: user.email,
           userId: user.id,
         });

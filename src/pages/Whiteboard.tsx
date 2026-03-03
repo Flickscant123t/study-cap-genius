@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import WhiteboardCanvas from "@/components/whiteboard/WhiteboardCanvas";
 import WhiteboardList, { Whiteboard } from "@/components/whiteboard/WhiteboardList";
-import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { redirectToStripeCheckout } from "@/lib/stripe";
 
 export default function WhiteboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -44,10 +44,6 @@ export default function WhiteboardPage() {
   
   const navigate = useNavigate();
   const { user, signOut, isPremium, dailyUsage, maxFreeUsage } = useAuth();
-  const stripeCheckoutUrl = getStripeCheckoutUrl({
-    email: user?.email,
-    userId: user?.id,
-  });
 
   useEffect(() => {
     if (!user) {
@@ -210,7 +206,7 @@ export default function WhiteboardPage() {
             <Button 
               variant="accent" 
               className="w-full mb-4"
-              onClick={() => (window.location.href = stripeCheckoutUrl)}
+              onClick={() => redirectToStripeCheckout({ email: user?.email, userId: user?.id })}
             >
               <Crown className="w-4 h-4" />
               Upgrade to Premium

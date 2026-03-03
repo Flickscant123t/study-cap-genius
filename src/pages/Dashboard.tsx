@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { getStripeCheckoutUrl } from "@/lib/stripe";
+import { redirectToStripeCheckout } from "@/lib/stripe";
 
 const ReactMarkdown = lazy(() => import("react-markdown"));
 
@@ -57,10 +57,6 @@ export default function Dashboard() {
   }, [messages]);
 
   const canSendMessage = isPremium || dailyUsage < maxFreeUsage;
-  const stripeCheckoutUrl = getStripeCheckoutUrl({
-    email: user?.email,
-    userId: user?.id,
-  });
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -268,7 +264,7 @@ export default function Dashboard() {
             <Button 
               variant="accent" 
               className="w-full mb-4"
-              onClick={() => (window.location.href = stripeCheckoutUrl)}
+              onClick={() => redirectToStripeCheckout({ email: user?.email, userId: user?.id })}
             >
               <Crown className="w-4 h-4" />
               Upgrade to Premium
@@ -401,7 +397,7 @@ export default function Dashboard() {
                   variant="accent" 
                   size="sm" 
                   className="mt-2"
-                  onClick={() => (window.location.href = stripeCheckoutUrl)}
+                  onClick={() => redirectToStripeCheckout({ email: user?.email, userId: user?.id })}
                 >
                   <Crown className="w-4 h-4" />
                   Upgrade for unlimited access
