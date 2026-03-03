@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/cNi4gz2EDaLuc185B2e3e03";
 
 interface StripeCheckoutUrlOptions {
@@ -19,6 +21,21 @@ export const getStripeCheckoutUrl = ({ email, userId }: StripeCheckoutUrlOptions
   return url.toString();
 };
 
-export const redirectToStripeCheckout = ({ email, userId }: StripeCheckoutUrlOptions = {}) => {
-  window.location.href = getStripeCheckoutUrl({ email, userId });
+export const redirectToStripeCheckout = async ({ email, userId }: StripeCheckoutUrlOptions = {}) => {
+  const { data, error } = await supabase.functions.invoke("stripe-create-checkout", {
+    body: {
+      email,
+      userId,
+      successUrl: `${window.location.origin}/success`,
+      cancelUrl: window.location.href,
+    },
+  });
+
+  if (error || !data?.url) {
+    // Fallback to static payment link if edge function is not deployed yet.
+    window.location.href = getStripeCheckoutUrl({ email, userId });
+    return;
+  }
+
+  window.location.href = data.url;
 };

@@ -59,7 +59,9 @@ Note: newer Vercel CLI versions can warn on older Node 20.x builds. If needed, u
 supabase functions deploy stripe-webhook --project-ref pthlcyiiceyvpzkalwog
 supabase functions deploy stripe-renewal --project-ref pthlcyiiceyvpzkalwog
 supabase functions deploy stripe-sync-subscription --project-ref pthlcyiiceyvpzkalwog
+supabase functions deploy stripe-create-checkout --project-ref pthlcyiiceyvpzkalwog
 ```
 
 - Ensure `STRIPE_SECRET_KEY` is set in Supabase secrets.
+- Ensure `STRIPE_PRICE_ID` is set in Supabase secrets (the recurring price used for premium checkout).
 - After webhook-related deploys, resend the latest `checkout.session.completed` event from Stripe to resync outstanding payments.
