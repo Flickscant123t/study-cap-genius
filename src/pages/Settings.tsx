@@ -88,7 +88,8 @@ export default function Settings() {
         });
 
         if (error) {
-          console.error("Failed to fetch renewal status:", error);
+          // Silently handle - user may have admin override or no Stripe sub
+          console.warn("Renewal status check skipped:", error.message);
           return;
         }
 
@@ -149,10 +150,28 @@ export default function Settings() {
       });
 
       if (error) {
+        // If the error is a FunctionsHttpError, try to parse the body for details
+        let errorMessage = error.message;
+        try {
+          if (error.context && typeof (error as any).context?.json === 'function') {
+            const body = await (error as any).context.json();
+            errorMessage = body?.error ?? errorMessage;
+          }
+        } catch {}
+
+        // No Stripe subscription = admin override or manual premium
+        if (errorMessage.includes("No active Stripe subscription") || errorMessage.includes("non-2xx")) {
+          toast({
+            title: "No subscription to cancel",
+            description: "Your premium access is not managed by a recurring subscription.",
+          });
+          return;
+        }
+
         toast({
           variant: "destructive",
           title: "Unable to cancel auto-renewal",
-          description: error.message,
+          description: errorMessage,
         });
         return;
       }
