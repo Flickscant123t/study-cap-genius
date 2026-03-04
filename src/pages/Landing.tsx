@@ -6,6 +6,7 @@ const LandingBelowFold = lazy(() => import("@/components/landing/LandingBelowFol
 export default function Landing() {
   const navigate = useNavigate();
   const [showBelowFold, setShowBelowFold] = useState(false);
+  const [parallaxY, setParallaxY] = useState(0);
   useEffect(() => {
     let idleCallbackId: number | undefined;
     let timeoutId: number | undefined;
@@ -24,14 +25,42 @@ export default function Landing() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    let rafId: number | null = null;
+    const updateParallax = () => {
+      rafId = null;
+      setParallaxY(window.scrollY * 0.25);
+    };
+
+    const onScroll = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(updateParallax);
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-screen gradient-hero relative overflow-hidden">
       <div
-        className="absolute inset-0 opacity-70 pointer-events-none z-0"
+        className="absolute inset-0 opacity-70 pointer-events-none z-0 will-change-transform"
         style={{
           backgroundImage: "url('/landing-olive-bg.svg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
+          transform: `translate3d(0, ${parallaxY}px, 0)`,
         }}
       />
       <div className="absolute inset-0 bg-background/35 pointer-events-none z-0" />
