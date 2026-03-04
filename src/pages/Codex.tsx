@@ -13,7 +13,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { AlertTriangle, Lightbulb, GraduationCap, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Lightbulb, CheckCircle2 } from "lucide-react";
+import { BrandIcon } from "@/components/BrandIcon";
 
 type Module = {
   id: string;
@@ -78,7 +79,7 @@ function Callout({
       className: "border-l-4 border-primary bg-card/80",
     },
     exam: {
-      icon: GraduationCap,
+      icon: BrandIcon,
       title: "Exam Tip",
       className: "border-l-4 border-accent bg-card/80",
     },

@@ -1,7 +1,8 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight, Crown, GraduationCap, Sparkles } from "lucide-react";
+import { ArrowRight, Crown, Sparkles } from "lucide-react";
+import { BrandIcon } from "@/components/BrandIcon";
 const LandingBelowFold = lazy(() => import("@/components/landing/LandingBelowFold"));
 export default function Landing() {
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ export default function Landing() {
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
+              <BrandIcon className="rounded-xl" />
             </div>
             <span className="font-bold text-xl">StudyCap</span>
           </div>

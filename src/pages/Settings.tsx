@@ -13,7 +13,6 @@ import {
   Trophy,
   BookOpen,
   Lightbulb,
-  GraduationCap,
   Check,
   Sun,
   Moon,
@@ -24,12 +23,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { BrandIcon } from "@/components/BrandIcon";
 
 export type AuraTheme = 'default' | 'midnight' | 'forest' | 'sunset';
 
 const personas: { id: StudyPersona; name: string; description: string; icon: React.ElementType }[] = [
   { id: 'coach', name: 'The Coach', description: 'Energetic and motivational. Pushes you to achieve your best!', icon: Trophy },
-  { id: 'scholar', name: 'The Scholar', description: 'Thoughtful and academic. Provides thorough explanations.', icon: GraduationCap },
+  { id: 'scholar', name: 'The Scholar', description: 'Thoughtful and academic. Provides thorough explanations.', icon: BrandIcon },
   { id: 'mentor', name: 'The Mentor', description: 'Wise and patient. Guides you to discover answers yourself.', icon: Lightbulb },
   { id: 'tutor', name: 'The Tutor', description: 'Friendly and structured. Breaks down complex topics simply.', icon: BookOpen },
 ];

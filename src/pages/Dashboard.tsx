@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
-  GraduationCap, 
   Home, 
   BookOpen, 
   CreditCard as FlashcardIcon, 
@@ -29,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { redirectToStripeCheckout } from "@/lib/stripe";
+import { BrandIcon } from "@/components/BrandIcon";
 
 const ReactMarkdown = lazy(() => import("react-markdown"));
 
@@ -195,7 +195,7 @@ export default function Dashboard() {
           {/* Logo */}
           <div className="flex items-center gap-3 px-2 mb-8">
             <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center">
-              <GraduationCap className="w-5 h-5 text-primary-foreground" />
+              <BrandIcon className="rounded-xl" />
             </div>
             <span className="font-bold text-xl text-sidebar-foreground">StudyCap</span>
             <button 

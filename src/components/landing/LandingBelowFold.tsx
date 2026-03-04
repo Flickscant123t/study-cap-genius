@@ -7,12 +7,12 @@ import {
   Brain,
   CheckCircle,
   Crown,
-  GraduationCap,
   Star,
   Trophy,
   MessageCircle,
   Zap,
 } from "lucide-react";
+import { BrandIcon } from "@/components/BrandIcon";
 
 export default function LandingBelowFold() {
   const navigate = useNavigate();
@@ -246,7 +246,7 @@ export default function LandingBelowFold() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                <GraduationCap className="w-4 h-4 text-primary-foreground" />
+                <BrandIcon className="rounded-lg" />
               </div>
               <span className="font-bold">StudyCap</span>
             </div>

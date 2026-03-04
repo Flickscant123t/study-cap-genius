@@ -5,11 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { GraduationCap, Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { redirectToStripeCheckout } from "@/lib/stripe";
 import { lovable } from "@/integrations/lovable/index";
 import { z } from "zod";
+import { BrandIcon } from "@/components/BrandIcon";
 
 const authSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -221,7 +222,7 @@ export default function Auth() {
         <Card className="p-8 shadow-card glass-card animate-slide-up-fade">
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-4">
-              <GraduationCap className="w-7 h-7 text-primary-foreground" />
+              <BrandIcon className="rounded-2xl" />
             </div>
             <h1 className="text-2xl font-bold">
               {isLogin ? "Welcome back!" : "Create your account"}
