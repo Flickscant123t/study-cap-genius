@@ -30,7 +30,7 @@ export default function Coach() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("enterprise_coach_questions")
         .select("id, question, answer, created_at, answered_at")
         .eq("user_id", user.id)
@@ -57,7 +57,7 @@ export default function Coach() {
     if (!user?.id || !question.trim() || submitting) return;
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("enterprise_coach_questions").insert({
+      const { error } = await (supabase as any).from("enterprise_coach_questions").insert({
         user_id: user.id,
         user_email: user.email ?? null,
         question: question.trim(),
