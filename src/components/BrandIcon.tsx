@@ -8,7 +8,7 @@ type BrandIconProps = {
 export function BrandIcon({ className, alt = "StudyCap icon" }: BrandIconProps) {
   return (
     <img
-      src="/image.png"
+      src="/chatgpt-icon.webp"
       alt={alt}
       className={cn("h-full w-full object-cover", className)}
     />

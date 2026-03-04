@@ -37,7 +37,7 @@ const App = () => (
             {/* Open Graph / Facebook */}
             <meta property="og:title" content="StudyCap - AI-Powered Study Assistant" />
             <meta property="og:description" content="Master any subject with StudyCap, your AI-powered study companion. Get instant explanations, create flashcards, and ace your exams with personalized learning." />
-            <meta property="og:image" content="https://studycapgenius.vercel.app/image.png/" />
+            <meta property="og:image" content="https://studycapgenius.vercel.app/chatgpt-icon.webp" />
             <meta property="og:url" content="https://studycapgenius.vercel.app/" />
             <meta property="og:type" content="website" />
 
@@ -45,7 +45,7 @@ const App = () => (
             <meta name="twitter:card" content="summary_large_image" />
             <meta name="twitter:title" content="StudyCap - AI-Powered Study Assistant" />
             <meta name="twitter:description" content="Master any subject with StudyCap, your AI-powered study companion. Get instant explanations, create flashcards, and ace your exams with personalized learning." />
-            <meta name="twitter:image" content="https://studycapgenius.vercel.app/image.png/" />
+            <meta name="twitter:image" content="https://studycapgenius.vercel.app/chatgpt-icon.webp" />
           </Helmet>
 
           <Toaster />
