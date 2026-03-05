@@ -183,11 +183,15 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div
+      className="relative min-h-screen flex bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/background.webp')" }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-background/50 backdrop-blur-[2px]" />
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transition-transform duration-300 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar/80 backdrop-blur-md border-r border-sidebar-border transition-transform duration-300 lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -297,7 +301,12 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className={cn("flex-1 flex flex-col min-h-screen transition-all duration-300", sidebarOpen && "lg:ml-64")}>
+      <main
+        className={cn(
+          "relative z-10 flex-1 flex flex-col min-h-screen bg-background/20 backdrop-blur-sm transition-all duration-300",
+          sidebarOpen && "lg:ml-64"
+        )}
+      >
         {/* Mobile Header */}
         <header className="lg:hidden h-14 border-b border-border flex items-center px-4">
           <button onClick={() => setSidebarOpen(true)} className="text-foreground">
