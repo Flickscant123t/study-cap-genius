@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,8 +12,11 @@ import { MarkdownPreview } from "@/components/notes/MarkdownPreview";
 import { MindMapView } from "@/components/notes/MindMapView";
 import { FolderTree } from "@/components/notes/FolderTree";
 import { NotesQuizGenerator } from "@/components/notes/NotesQuizGenerator";
+import { PdfAnnotator, AnnotationData } from "@/components/notes/PdfAnnotator";
 import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   Plus,
   FileText,
@@ -27,6 +30,8 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeft,
+  Upload,
+  FileUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,10 +49,14 @@ export default function Notes() {
     return stored ? JSON.parse(stored) : [];
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const [savingAnnotations, setSavingAnnotations] = useState(false);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const navigate = useNavigate();
   const { user, isPremium, loading: authLoading } = useAuth();
   const { notes, loading, createNote, updateNote, deleteNote } = useNotes();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/auth");
@@ -90,6 +99,51 @@ export default function Notes() {
     setIsEditing(false);
   };
 
+  const handleUploadPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.type !== "application/pdf") {
+      toast({ variant: "destructive", title: "Error", description: "Please select a PDF file" });
+      return;
+    }
+    setUploadingPdf(true);
+    try {
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("note-pdfs")
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("note-pdfs")
+        .getPublicUrl(filePath);
+
+      const note = await createNote(file.name.replace(".pdf", ""), "", null);
+      if (note) {
+        await updateNote(note.id, { pdf_url: urlData.publicUrl } as any);
+        const updatedNote = { ...note, pdf_url: urlData.publicUrl, annotations: { strokes: [], texts: [] } };
+        setSelectedNote(updatedNote);
+        setEditTitle(updatedNote.title);
+        setEditContent("");
+        setViewMode("preview");
+      }
+      toast({ title: "PDF uploaded", description: "Your PDF is ready for annotation" });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Upload failed", description: err.message });
+    }
+    setUploadingPdf(false);
+    if (pdfInputRef.current) pdfInputRef.current.value = "";
+  };
+
+  const handleSaveAnnotations = async (data: AnnotationData) => {
+    if (!selectedNote) return;
+    setSavingAnnotations(true);
+    await updateNote(selectedNote.id, { annotations: data } as any);
+    setSelectedNote({ ...selectedNote, annotations: data });
+    setSavingAnnotations(false);
+    toast({ title: "Annotations saved" });
+  };
+
   const handleDeleteNote = async (id: string) => {
     await deleteNote(id);
     if (selectedNote?.id === id) {
@@ -104,7 +158,7 @@ export default function Notes() {
     setEditContent(note.content);
     setIsEditing(false);
     setShowQuiz(false);
-    setViewMode("preview");
+    setViewMode(note.pdf_url ? "preview" : "preview");
   };
 
   const toggleFavorite = (noteId: string) => {
@@ -129,6 +183,23 @@ export default function Notes() {
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleCreateNote}>
                 <Plus className="w-4 h-4" />
               </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8"
+                onClick={() => pdfInputRef.current?.click()}
+                disabled={uploadingPdf}
+                title="Upload PDF"
+              >
+                {uploadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileUp className="w-4 h-4" />}
+              </Button>
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleUploadPdf}
+              />
               <Button
                 size="icon"
                 variant="ghost"
@@ -264,6 +335,13 @@ export default function Notes() {
                         onClose={() => setShowQuiz(false)}
                       />
                     </div>
+                  ) : selectedNote.pdf_url ? (
+                    <PdfAnnotator
+                      pdfUrl={selectedNote.pdf_url}
+                      annotations={selectedNote.annotations || { strokes: [], texts: [] }}
+                      onSave={handleSaveAnnotations}
+                      saving={savingAnnotations}
+                    />
                   ) : isEditing ? (
                     <MarkdownEditor
                       value={editContent}
@@ -291,10 +369,16 @@ export default function Notes() {
                 <p className="text-muted-foreground mb-4">
                   Choose a note from the sidebar or create a new one to get started.
                 </p>
-                <Button variant="hero" onClick={handleCreateNote}>
-                  <Plus className="w-4 h-4" />
-                  Create Note
-                </Button>
+                <div className="flex gap-3">
+                  <Button variant="hero" onClick={handleCreateNote}>
+                    <Plus className="w-4 h-4" />
+                    Create Note
+                  </Button>
+                  <Button variant="outline" onClick={() => pdfInputRef.current?.click()} disabled={uploadingPdf}>
+                    {uploadingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    Upload PDF
+                  </Button>
+                </div>
               </Card>
             </div>
           )}

@@ -140,36 +140,42 @@ export type Database = {
       }
       notes: {
         Row: {
+          annotations: Json | null
           content: string | null
           created_at: string
           folder_path: string | null
           id: string
           is_favorite: boolean | null
           parent_folder_id: string | null
+          pdf_url: string | null
           subject: string | null
           title: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          annotations?: Json | null
           content?: string | null
           created_at?: string
           folder_path?: string | null
           id?: string
           is_favorite?: boolean | null
           parent_folder_id?: string | null
+          pdf_url?: string | null
           subject?: string | null
           title: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          annotations?: Json | null
           content?: string | null
           created_at?: string
           folder_path?: string | null
           id?: string
           is_favorite?: boolean | null
           parent_folder_id?: string | null
+          pdf_url?: string | null
           subject?: string | null
           title?: string
           updated_at?: string
