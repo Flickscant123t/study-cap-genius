@@ -10,6 +10,8 @@ export interface Note {
   subject: string | null;
   created_at: string;
   updated_at: string;
+  pdf_url?: string | null;
+  annotations?: any;
 }
 
 export function useNotes() {
@@ -53,7 +55,7 @@ export function useNotes() {
     return data;
   };
 
-  const updateNote = async (id: string, updates: Partial<Pick<Note, 'title' | 'content' | 'subject'>>) => {
+  const updateNote = async (id: string, updates: Partial<Pick<Note, 'title' | 'content' | 'subject' | 'pdf_url' | 'annotations'>>) => {
     const { data, error } = await supabase
       .from('notes')
       .update(updates)
