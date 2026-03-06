@@ -17,6 +17,7 @@ import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { RichDocumentEditor } from "@/components/notes/RichDocumentEditor";
 import {
   Plus,
   FileText,
@@ -32,6 +33,7 @@ import {
   PanelLeft,
   Upload,
   FileUp,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +99,44 @@ export default function Notes() {
     await updateNote(selectedNote.id, { title: editTitle, content: editContent });
     setSelectedNote({ ...selectedNote, title: editTitle, content: editContent });
     setIsEditing(false);
+  };
+
+  const handleDownloadPdf = () => {
+    if (!selectedNote) return;
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${selectedNote.title}</title>
+        <style>
+          body { font-family: Georgia, 'Times New Roman', serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; line-height: 1.7; }
+          h1 { font-size: 28px; border-bottom: 2px solid #e5e5e5; padding-bottom: 8px; margin-top: 32px; }
+          h2 { font-size: 22px; margin-top: 28px; }
+          h3 { font-size: 18px; margin-top: 24px; }
+          ul, ol { padding-left: 24px; }
+          blockquote { border-left: 4px solid #d4d4d4; padding-left: 16px; color: #525252; font-style: italic; margin: 16px 0; }
+          pre { background: #f5f5f5; padding: 16px; border-radius: 8px; font-size: 13px; overflow-x: auto; }
+          code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+          hr { border: none; border-top: 1px solid #e5e5e5; margin: 24px 0; }
+          table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+          th, td { border: 1px solid #d4d4d4; padding: 8px 12px; text-align: left; }
+          th { background: #f5f5f5; font-weight: 600; }
+          img { max-width: 100%; }
+          @media print { body { margin: 0; } }
+        </style>
+      </head>
+      <body>
+        <h1>${selectedNote.title}</h1>
+        ${editContent || selectedNote.content || ""}
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
   };
 
   const handleUploadPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,6 +348,10 @@ export default function Notes() {
                     </>
                   ) : (
                     <>
+                      <Button variant="outline" size="sm" onClick={handleDownloadPdf} title="Download as PDF">
+                        <Download className="w-4 h-4 mr-1" />
+                        PDF
+                      </Button>
                       <Button variant="outline" onClick={() => setIsEditing(true)}>
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
@@ -343,10 +387,9 @@ export default function Notes() {
                       saving={savingAnnotations}
                     />
                   ) : isEditing ? (
-                    <MarkdownEditor
-                      value={editContent}
+                    <RichDocumentEditor
+                      initialContent={editContent || selectedNote.content || ""}
                       onChange={setEditContent}
-                      placeholder="Start writing with Markdown, LaTeX ($...$), or code blocks..."
                     />
                   ) : viewMode === "mindmap" ? (
                     <MindMapView content={selectedNote.content} title={selectedNote.title} />
