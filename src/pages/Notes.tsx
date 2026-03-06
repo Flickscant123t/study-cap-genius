@@ -265,6 +265,7 @@ export default function Notes() {
                 currentFolderId={currentFolderId}
                 favoriteNotes={favoriteNotes}
                 onToggleFavorite={toggleFavorite}
+                onDeleteNote={handleDeleteNote}
               />
             )}
           </div>
