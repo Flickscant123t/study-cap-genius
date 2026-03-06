@@ -387,10 +387,9 @@ export default function Notes() {
                       saving={savingAnnotations}
                     />
                   ) : isEditing ? (
-                    <MarkdownEditor
-                      value={editContent}
+                    <RichDocumentEditor
+                      initialContent={editContent || selectedNote.content || ""}
                       onChange={setEditContent}
-                      placeholder="Start writing with Markdown, LaTeX ($...$), or code blocks..."
                     />
                   ) : viewMode === "mindmap" ? (
                     <MindMapView content={selectedNote.content} title={selectedNote.title} />
