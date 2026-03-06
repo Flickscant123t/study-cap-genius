@@ -154,9 +154,10 @@ export function RichDocumentEditor({
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-md"
-                onClick={() =>
-                  execCommand(btn.command, btn.value, btn.promptValue)
-                }
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  execCommand(btn.command, btn.value, btn.promptValue);
+                }}
                 title={btn.label}
                 type="button"
               >
