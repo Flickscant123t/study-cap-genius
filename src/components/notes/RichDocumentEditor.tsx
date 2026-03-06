@@ -87,8 +87,30 @@ export function RichDocumentEditor({
 }: RichDocumentEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
 
+  const saveSelection = useCallback(() => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      return sel.getRangeAt(0).cloneRange();
+    }
+    return null;
+  }, []);
+
+  const restoreSelection = useCallback((range: Range | null) => {
+    if (range) {
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }
+  }, []);
+
   const execCommand = useCallback(
     (command: string, value?: string, promptValue?: boolean) => {
+      const savedRange = saveSelection();
+      editorRef.current?.focus();
+      restoreSelection(savedRange);
+
       if (promptValue) {
         const url = prompt("Enter URL:");
         if (!url) return;
@@ -98,10 +120,9 @@ export function RichDocumentEditor({
       } else {
         document.execCommand(command, false);
       }
-      editorRef.current?.focus();
       onChange(editorRef.current?.innerHTML || "");
     },
-    [onChange]
+    [onChange, saveSelection, restoreSelection]
   );
 
   const handleInput = useCallback(() => {

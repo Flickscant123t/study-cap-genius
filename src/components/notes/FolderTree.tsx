@@ -31,6 +31,7 @@ interface FolderTreeProps {
   currentFolderId: string | null;
   favoriteNotes: string[];
   onToggleFavorite: (noteId: string) => void;
+  onDeleteNote?: (noteId: string) => void;
 }
 
 export function FolderTree({
