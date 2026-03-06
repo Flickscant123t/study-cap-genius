@@ -42,6 +42,7 @@ export function FolderTree({
   currentFolderId,
   favoriteNotes,
   onToggleFavorite,
+  onDeleteNote,
 }: FolderTreeProps) {
   const { folders, createFolder, deleteFolder, updateFolder } = useNoteFolders();
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
