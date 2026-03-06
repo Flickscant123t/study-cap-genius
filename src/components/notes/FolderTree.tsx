@@ -331,25 +331,38 @@ export function FolderTree({
             >
               <FileText className="h-4 w-4 text-muted-foreground" />
               <span className="flex-1 text-sm truncate">{note.title}</span>
-              <button
-                className={cn(
-                  "opacity-0 group-hover:opacity-100",
-                  favoriteNotes.includes(note.id) && "opacity-100"
+              <div className="flex items-center gap-0.5">
+                {onDeleteNote && (
+                  <button
+                    className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-destructive/10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteNote(note.id);
+                    }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </button>
                 )}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(note.id);
-                }}
-              >
-                <Star
+                <button
                   className={cn(
-                    "h-4 w-4",
-                    favoriteNotes.includes(note.id)
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
+                    "opacity-0 group-hover:opacity-100 p-0.5",
+                    favoriteNotes.includes(note.id) && "opacity-100"
                   )}
-                />
-              </button>
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(note.id);
+                  }}
+                >
+                  <Star
+                    className={cn(
+                      "h-4 w-4",
+                      favoriteNotes.includes(note.id)
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-muted-foreground"
+                    )}
+                  />
+                </button>
+              </div>
             </div>
           ))}
         </div>
