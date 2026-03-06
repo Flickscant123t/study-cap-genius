@@ -348,6 +348,10 @@ export default function Notes() {
                     </>
                   ) : (
                     <>
+                      <Button variant="outline" size="sm" onClick={handleDownloadPdf} title="Download as PDF">
+                        <Download className="w-4 h-4 mr-1" />
+                        PDF
+                      </Button>
                       <Button variant="outline" onClick={() => setIsEditing(true)}>
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
