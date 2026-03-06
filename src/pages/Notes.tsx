@@ -17,6 +17,7 @@ import { PremiumLockedView } from "@/components/premium/PremiumLockedView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { RichDocumentEditor } from "@/components/notes/RichDocumentEditor";
 import {
   Plus,
   FileText,
@@ -32,6 +33,7 @@ import {
   PanelLeft,
   Upload,
   FileUp,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
