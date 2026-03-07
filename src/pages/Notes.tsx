@@ -198,7 +198,7 @@ export default function Notes() {
     setEditContent(note.content);
     setIsEditing(false);
     setShowQuiz(false);
-    setViewMode(note.pdf_url ? "preview" : "preview");
+    setViewMode(note.pdf_url ? "preview" : "editor");
   };
 
   const toggleFavorite = (noteId: string) => {
