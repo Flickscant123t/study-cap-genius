@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { Navigate } from "react-router-dom";
 
 type AdminQuestion = {
   id: string;
@@ -17,17 +18,30 @@ type AdminQuestion = {
 
 export default function AdminCoach() {
   const { toast } = useToast();
-  const [password, setPassword] = useState("");
-  const [adminOk, setAdminOk] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [items, setItems] = useState<AdminQuestion[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
-  const validPassword = "imd***imd";
+  // Check admin role server-side
+  useEffect(() => {
+    if (!user) return;
+    const checkAdmin = async () => {
+      const { data } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkAdmin();
+  }, [user]);
 
-  const load = async (pwd: string) => {
+  const load = async () => {
     const { data, error } = await supabase.functions.invoke("enterprise-coach-admin", {
-      body: { action: "list", password: pwd },
+      body: { action: "list" },
     });
     if (error) throw error;
     const questions = ((data as { questions?: AdminQuestion[] } | null)?.questions ?? []) as AdminQuestion[];
@@ -35,18 +49,9 @@ export default function AdminCoach() {
     setDrafts(Object.fromEntries(questions.map((q) => [q.id, q.answer ?? ""])));
   };
 
-  const submitPassword = async () => {
-    if (password !== validPassword) {
-      toast({ variant: "destructive", title: "Wrong password" });
-      return;
-    }
-    try {
-      await load(password);
-      setAdminOk(true);
-    } catch {
-      toast({ variant: "destructive", title: "Failed to open admin inbox" });
-    }
-  };
+  useEffect(() => {
+    if (isAdmin) load();
+  }, [isAdmin]);
 
   const unanswered = useMemo(() => items.filter((x) => !x.answer).length, [items]);
 
@@ -56,10 +61,10 @@ export default function AdminCoach() {
     setSavingId(id);
     try {
       const { error } = await supabase.functions.invoke("enterprise-coach-admin", {
-        body: { action: "answer", password, questionId: id, answer },
+        body: { action: "answer", questionId: id, answer },
       });
       if (error) throw error;
-      await load(password);
+      await load();
       toast({ title: "Answer sent" });
     } catch {
       toast({ variant: "destructive", title: "Could not save answer" });
@@ -68,23 +73,16 @@ export default function AdminCoach() {
     }
   };
 
-  if (!adminOk) {
+  if (authLoading || isAdmin === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Card className="p-6 w-full max-w-md">
-          <h1 className="text-xl font-bold mb-3">Admin Coach Inbox</h1>
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-          />
-          <Button className="mt-3 w-full" onClick={submitPassword}>
-            Open inbox
-          </Button>
-        </Card>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
+  }
+
+  if (!user || !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (

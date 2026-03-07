@@ -48,15 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      // Check for admin override
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      const isAdminOverride = currentUser?.email === 'ben.haener@lgr.ch';
+      // Check for admin role via server-side user_roles table
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+      const isAdmin = !!roleData;
 
       const dbPlan = data?.status === 'active' && (data?.plan === 'premium' || data?.plan === 'enterprise')
         ? (data.plan as 'premium' | 'enterprise')
         : 'free';
       let resolvedPlan: 'free' | 'premium' | 'enterprise' = dbPlan;
-      let isPremiumUser = isAdminOverride || resolvedPlan !== 'free';
+      let isPremiumUser = isAdmin || resolvedPlan !== 'free';
 
       // Safety net: if webhook missed, try syncing directly from Stripe once.
       if (!isPremiumUser) {
