@@ -84,11 +84,11 @@ export default function Notes() {
   const noteList = notes ?? [];
 
   const handleCreateNote = async () => {
-    const note = await createNote("Untitled Note");
+    const note = await createNote("Untitled Note", "", null);
     if (note) {
       setSelectedNote(note);
       setEditTitle(note.title);
-      setEditContent(note.content);
+      setEditContent(note.content || "");
       setIsEditing(true);
       setViewMode("editor");
     }
