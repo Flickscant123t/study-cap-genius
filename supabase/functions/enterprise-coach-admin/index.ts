@@ -28,24 +28,47 @@ serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-    const ENTERPRISE_ADMIN_PASSWORD = Deno.env.get("ENTERPRISE_ADMIN_PASSWORD") ?? "imd***imd";
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       return jsonResponse(500, { error: "Server configuration error" });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const action = body?.action;
-    const password = body?.password;
-
-    if (typeof password !== "string" || password !== ENTERPRISE_ADMIN_PASSWORD) {
-      return jsonResponse(401, { error: "Invalid admin password" });
+    // Authenticate the calling user via their JWT
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return jsonResponse(401, { error: "Missing authorization header" });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Verify the user's JWT and get their ID
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const supabaseAuth = createClient(SUPABASE_URL, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+
+    if (userError || !user) {
+      return jsonResponse(401, { error: "Invalid or expired token" });
+    }
+
+    // Check admin role server-side
+    const { data: roleData } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleData) {
+      return jsonResponse(403, { error: "Forbidden: admin role required" });
+    }
+
+    const body = await req.json().catch(() => ({}));
+    const action = body?.action;
 
     if (action === "list") {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from("enterprise_coach_questions")
         .select("id, user_id, user_email, question, answer, answered_at, created_at")
         .order("created_at", { ascending: false });
@@ -65,7 +88,7 @@ serve(async (req) => {
         return jsonResponse(400, { error: "questionId and answer are required" });
       }
 
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("enterprise_coach_questions")
         .update({
           answer: answer.trim(),
