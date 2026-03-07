@@ -84,11 +84,11 @@ export default function Notes() {
   const noteList = notes ?? [];
 
   const handleCreateNote = async () => {
-    const note = await createNote("Untitled Note");
+    const note = await createNote("Untitled Note", "", null);
     if (note) {
       setSelectedNote(note);
       setEditTitle(note.title);
-      setEditContent(note.content);
+      setEditContent(note.content || "");
       setIsEditing(true);
       setViewMode("editor");
     }
@@ -195,7 +195,7 @@ export default function Notes() {
   const handleSelectNote = (note: Note) => {
     setSelectedNote(note);
     setEditTitle(note.title);
-    setEditContent(note.content);
+    setEditContent(note.content || "");
     setIsEditing(false);
     setShowQuiz(false);
     setViewMode(note.pdf_url ? "preview" : "editor");
@@ -277,7 +277,7 @@ export default function Notes() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-20 left-2 z-10 h-8 w-8"
+              className="fixed top-20 left-2 z-20 h-8 w-8 bg-card border border-border shadow-sm"
               onClick={() => setSidebarCollapsed(false)}
             >
               <PanelLeft className="w-4 h-4" />
