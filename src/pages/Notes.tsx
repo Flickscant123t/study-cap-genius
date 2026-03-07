@@ -277,7 +277,7 @@ export default function Notes() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-20 left-2 z-10 h-8 w-8"
+              className="fixed top-20 left-2 z-20 h-8 w-8 bg-card border border-border shadow-sm"
               onClick={() => setSidebarCollapsed(false)}
             >
               <PanelLeft className="w-4 h-4" />
