@@ -195,7 +195,7 @@ export default function Notes() {
   const handleSelectNote = (note: Note) => {
     setSelectedNote(note);
     setEditTitle(note.title);
-    setEditContent(note.content);
+    setEditContent(note.content || "");
     setIsEditing(false);
     setShowQuiz(false);
     setViewMode(note.pdf_url ? "preview" : "editor");
