@@ -86,6 +86,15 @@ export function RichDocumentEditor({
   className,
 }: RichDocumentEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const lastInitialContentRef = useRef(initialContent);
+
+  // Sync editor content when switching notes (initialContent changes)
+  useEffect(() => {
+    if (initialContent !== lastInitialContentRef.current && editorRef.current) {
+      editorRef.current.innerHTML = initialContent;
+      lastInitialContentRef.current = initialContent;
+    }
+  }, [initialContent]);
 
   const saveSelection = useCallback(() => {
     const sel = window.getSelection();
