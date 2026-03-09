@@ -397,26 +397,6 @@
     --sidebar-ring: 93 15% 25%;
   }
 
-  .midnight {
-    --background: 93 10% 18%;
-    --card: 93 10% 23%;
-    --secondary: 93 11% 25%;
-    --muted: 93 10% 22%;
-  }
-
-  .forest {
-    --background: 103 12% 22%;
-    --card: 103 13% 28%;
-    --secondary: 103 14% 30%;
-    --muted: 103 12% 25%;
-  }
-
-  .sunset {
-    --background: 80 12% 24%;
-    --card: 80 13% 30%;
-    --secondary: 80 14% 32%;
-    --muted: 80 12% 27%;
-  }
 }
 
 @layer utilities {
