@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -105,7 +105,7 @@ serve(async (req) => {
     }
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return jsonResponse(401, { error: "Unauthorized" });
     }
 
@@ -119,6 +119,8 @@ serve(async (req) => {
       // Keep default action when body is missing/invalid.
     }
 
+    const token = authHeader.replace("Bearer ", "");
+
     const supabaseUserClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: {
         headers: {
@@ -130,7 +132,7 @@ serve(async (req) => {
     const {
       data: { user },
       error: userError,
-    } = await supabaseUserClient.auth.getUser();
+    } = await supabaseUserClient.auth.getUser(token);
 
     if (userError || !user) {
       return jsonResponse(401, { error: "Unauthorized" });
